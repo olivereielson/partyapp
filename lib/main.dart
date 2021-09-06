@@ -44,44 +44,35 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-
-
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
   Barcode? result;
   QRViewController? controller;
   bool _scanning = false;
   String _homeID = "";
-  List<double>_guestsInside=[];
+  List<double> _guestsInside = [];
 
   ScreenshotController screenshotController = ScreenshotController();
 
   String _message = "Scan Code";
   Color _messageColor = Colors.redAccent;
 
-
   Future<List<int>> get_Guest_List() async {
+    List<int> guestlist = [];
 
-    List<int> guestlist=[];
-
-    await widget.ref.child(widget.partyCode).once().then((DataSnapshot data){
-
-
-      for(int i=0; i<data.value.length; i++){
+    await widget.ref.child(widget.partyCode).once().then((DataSnapshot data) {
+      for (int i = 0; i < data.value.length; i++) {
         guestlist.add(data.value[i]);
-
       }
-
     });
 
     return guestlist;
   }
 
   Future<void> update_list(int Id) async {
-    List<int> temp=  await get_Guest_List();
+    List<int> temp = await get_Guest_List();
     temp.add(Id);
     widget.ref.child(widget.partyCode).set(temp);
   }
-
 
   shareCode() async {
     var rng = new Random();
@@ -107,15 +98,11 @@ class _MyHomePageState extends State<MyHomePage> {
       print(onError);
     });
 
-    setState(() {
-
-    });
+    setState(() {});
   }
 
   Future<void> scandata(Barcode result) async {
-
-
-    List<int> _guestlist= await get_Guest_List();
+    List<int> _guestlist = await get_Guest_List();
 
     _scanning = true;
 
@@ -127,7 +114,7 @@ class _MyHomePageState extends State<MyHomePage> {
     }
 
     if (_guestlist.contains(int.parse(result.code)) && !_guestsInside.contains(double.parse(result.code))) {
-     // _guestsInside.add(double.parse(result.code));
+      // _guestsInside.add(double.parse(result.code));
       setState(() {
         _messageColor = Colors.green;
         _message = "Approved";
@@ -190,24 +177,21 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Scaffold page1(DatabaseReference ref) {
-
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.transparent,
-        title: Text(widget.partyCode.toUpperCase(),style: TextStyle(fontSize: 25),),
+        title: Text(
+          widget.partyCode.toUpperCase(),
+          style: TextStyle(fontSize: 25),
+        ),
         leadingWidth: 80,
         leading: IconButton(
           icon: Icon(Icons.home),
-          onPressed: (){
-
+          onPressed: () {
             Navigator.pop(context);
-
           },
-
         ),
-
-
       ),
       body: Center(
         child: Column(
@@ -216,24 +200,13 @@ class _MyHomePageState extends State<MyHomePage> {
             Padding(
               padding: const EdgeInsets.only(top: 90),
               child: GestureDetector(
-
-
-                onDoubleTap: (){
-
-
-                  ref.child(widget.partyCode).set([1000,111,1111,111]);
-
-
-
+                onDoubleTap: () {
+                  ref.child(widget.partyCode).set([1000, 111, 1111, 111]);
                 },
-
-
                 onTap: () {
-
-                  ref.child(widget.partyCode).once().then((DataSnapshot data){
+                  ref.child(widget.partyCode).once().then((DataSnapshot data) {
                     print(data.value[0]);
                   });
-
                 },
                 child: QrImage(
                   size: 300,
@@ -253,23 +226,18 @@ class _MyHomePageState extends State<MyHomePage> {
                   }),
             ),
             FutureBuilder(
-
               future: get_Guest_List(),
               builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
+                if (snapshot.hasData) {
+                  return Text(
+                    snapshot.data.length.toString() + " Invitations Sent",
+                    style: TextStyle(fontSize: 30, color: Colors.redAccent, fontWeight: FontWeight.bold),
+                  );
+                }
 
-               if (snapshot.hasData){
-                 return Text(
-                   snapshot.data.length.toString() + " Invitations Sent",
-                   style: TextStyle(fontSize: 30, color: Colors.redAccent, fontWeight: FontWeight.bold),
-                 );
-               }
-
-               return Text("");
-
-
-
-              },),
-
+                return Text("");
+              },
+            ),
             Padding(
               padding: const EdgeInsets.only(bottom: 50, top: 30),
               child: Text(
@@ -288,12 +256,9 @@ class _MyHomePageState extends State<MyHomePage> {
     return WillPopScope(
       onWillPop: () async => false,
       child: PageView(
-
         controller: PageController(keepPage: true),
         scrollDirection: Axis.vertical,
-
-        children: [
-          page1(widget.ref), page2()],
+        children: [page1(widget.ref), page2()],
       ),
     );
   }
