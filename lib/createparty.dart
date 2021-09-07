@@ -1,3 +1,4 @@
+import 'package:bouncer/partyStructure.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -138,6 +139,9 @@ class _CreatePartyState extends State<CreateParty> {
                               onPressed: () {
 
                                 if(_partyCode!=""&&_partyName!=""){
+
+
+                                  /*
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
@@ -147,6 +151,8 @@ class _CreatePartyState extends State<CreateParty> {
                                           ref: widget.ref,
                                         )),
                                   );
+
+                                   */
                                 }else{
 
                                   if(_partyName==""||_partyCode==""){
