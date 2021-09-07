@@ -1,5 +1,7 @@
+import 'dart:math';
+
 class Party {
-  Party({required this.partyName, required this.partyCode,required this.guestsInside,required this.guestList});
+  Party({required this.partyName, required this.partyCode, required this.guestsInside, required this.guestList});
 
   List<String> guestList;
   List<String> guestsInside;
@@ -13,40 +15,29 @@ class Party {
         partyName = json['partyName'],
         partyCode = json['partyCode'];
 
-
-  bool onguestList(String id){
-
-    if(guestList.contains(id)){
-
+  bool onguestList(String id) {
+    if (guestList.contains(id)) {
       return true;
-
     }
 
-
     return false;
-
   }
 
-  bool isInside(String id){
-
-    if(guestsInside.contains(id)){
-
+  bool isInside(String id) {
+    if (guestsInside.contains(id)) {
       return true;
-
     }
 
-
     return false;
-
   }
 
-  void fromjson(Map<String, dynamic> json){
+  void fromjson(Map<String, dynamic> json) {
     guestList = json['guestList'].cast<String>();
     guestsInside = json['guestsInside'].cast<String>();
     partyName = json['partyName'];
     partyCode = json['partyCode'];
-
   }
+
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
     data['guestList'] = this.guestList.cast<String>();
@@ -55,5 +46,13 @@ class Party {
     data['partyCode'] = this.partyCode;
 
     return data;
+  }
+
+  String generateId() {
+    var rng = new Random();
+
+    String inviteID = DateTime.now().microsecondsSinceEpoch.toString() + rng.nextInt(100).toString();
+
+    return inviteID;
   }
 }

@@ -51,6 +51,8 @@ PODS:
     - Flutter
   - share_files_and_screenshot_widgets_plus (0.0.1):
     - Flutter
+  - shared_preferences (0.0.1):
+    - Flutter
 
 DEPENDENCIES:
   - camera (from `.symlinks/plugins/camera/ios`)
@@ -61,6 +63,7 @@ DEPENDENCIES:
   - qr_code_scanner (from `.symlinks/plugins/qr_code_scanner/ios`)
   - share (from `.symlinks/plugins/share/ios`)
   - share_files_and_screenshot_widgets_plus (from `.symlinks/plugins/share_files_and_screenshot_widgets_plus/ios`)
+  - shared_preferences (from `.symlinks/plugins/shared_preferences/ios`)
 
 SPEC REPOS:
   trunk:
@@ -92,6 +95,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/share/ios"
   share_files_and_screenshot_widgets_plus:
     :path: ".symlinks/plugins/share_files_and_screenshot_widgets_plus/ios"
+  shared_preferences:
+    :path: ".symlinks/plugins/shared_preferences/ios"
 
 SPEC CHECKSUMS:
   camera: 3164201dc344383e62282964016528c4f5a9ad50
@@ -112,6 +117,7 @@ SPEC CHECKSUMS:
   qr_code_scanner: bb67d64904c3b9658ada8c402e8b4d406d5d796e
   share: 0b2c3e82132f5888bccca3351c504d0003b3b410
   share_files_and_screenshot_widgets_plus: c156887aae7bae38739f0b4a95fcb0959d6f333c
+  shared_preferences: af6bfa751691cdc24be3045c43ec037377ada40d
 
 PODFILE CHECKSUM: fe0e1ee7f3d1f7d00b11b474b62dd62134535aea
 

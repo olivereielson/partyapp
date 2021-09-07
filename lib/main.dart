@@ -11,6 +11,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:page_transition/page_transition.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -91,17 +92,16 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   shareCode() async {
-    var rng = new Random();
 
-    String inviteID = DateTime.now().microsecondsSinceEpoch.toString() + rng.nextInt(100).toString();
 
-    party.guestList.add(inviteID);
+    String id=party.generateId();
+    party.guestList.add(id);
     await uploadParty();
 
     screenshotController
         .captureFromWidget(
       QrImage(
-        data: inviteID,
+        data: id,
         version: QrVersions.auto,
       ),
     )
@@ -214,11 +214,8 @@ class _MyHomePageState extends State<MyHomePage> {
             size: 30,
           ),
           onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => LoginPage()),
-            );          },
+            Navigator.push(context, PageTransition(type: PageTransitionType.topToBottom, duration: Duration(milliseconds: 500), child: LoginPage()));
+       },
         ),
         actions: [
           TextButton(

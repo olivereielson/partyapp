@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:bouncer/partyStructure.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -21,6 +22,7 @@ class _UserScanState extends State<UserScan> {
   Color _mesageColor=Colors.redAccent;
   String _message="Scan Code";
   QRViewController? controller;
+  late Party party;
 
   bool _scanning = false;
 
@@ -45,6 +47,28 @@ class _UserScanState extends State<UserScan> {
     return true;
   }
 
+  Future<void> updateParty(String PartyName) async {
+    await widget.ref.child(PartyName).once().then((DataSnapshot data) {
+      //print(data.value);
+      if (data.value != null) {
+        party.fromjson(json.decode(data.value));
+      }else{
+        print("party instance created in firebase");
+        String str = json.encode(party.toJson());
+        widget.ref.child(PartyName).set(str);
+      }
+    });
+    setState(() {
+
+    });
+  }
+
+  Future<void> uploadParty(String PartyName) async{
+    String str = json.encode(party.toJson());
+    widget.ref.child(PartyName).set(str);
+  }
+
+
   Future<void> scandata(Barcode result) async {
     _scanning = true;
 
@@ -56,15 +80,40 @@ class _UserScanState extends State<UserScan> {
 
     if (temp) {
 
+      setState(() {
+        _mesageColor=Colors.green;
+        _message="Accepted";
+      });
+
+      await updateParty(result.code.split(",")[0]);
+
+      String id=party.generateId();
+
+      party.guestList.add(id);
+
+      await uploadParty(result.code.split(",")[0]);
+
+
+      Navigator.pop(context,id);
+
+
+
 
     }else{
 
-      _mesageColor=Colors.orangeAccent;
-      _message="Invalid Code";
+      setState(() {
+        _mesageColor=Colors.orangeAccent;
+        _message="Invalid Code";
+      });
+
 
     }
     await Future.delayed(Duration(seconds: 1));
 
+    setState(() {
+      _mesageColor=Colors.redAccent;
+      _message="Scan Code";
+    });
     _scanning = false;
   }
 
@@ -81,47 +130,55 @@ class _UserScanState extends State<UserScan> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: Column(
-        children: <Widget>[
-          Expanded(
-            flex: 1,
-            child: Container(
-              width: MediaQuery.of(context).size.width,
-              color: Colors.redAccent,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  IconButton(
-                      onPressed: () {
-                        Navigator.pop(context, 0);
-                      },
-                      icon: Icon(
-                        Icons.arrow_back_outlined,
-                        size: 30,
-                      )),
-                  Text(
-                    "Scan Code",
-                    style: TextStyle(fontSize: 30),
-                  ),
-                  Icon(
-                    Icons.code,
-                    color: Colors.transparent,
-                  )
-                ],
+    return WillPopScope(
+      onWillPop: () async => false,
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: Column(
+          children: <Widget>[
+            Expanded(
+              flex: 1,
+              child: Container(
+                width: MediaQuery.of(context).size.width,
+                color: _mesageColor,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    IconButton(
+                        onPressed: () {
+                          Navigator.pop(context, "0");
+                        },
+                        icon: Icon(
+                          Icons.arrow_back_outlined,
+                          size: 30,
+                        )),
+                    Text(
+                      _message,
+                      style: TextStyle(fontSize: 30),
+                    ),
+                    Icon(
+                      Icons.code,
+                      color: Colors.transparent,
+                    )
+                  ],
+                ),
               ),
             ),
-          ),
-          Expanded(
-            flex: 5,
-            child: QRView(
-              key: qrKey,
-              onQRViewCreated: _onQRViewCreated,
+            Expanded(
+              flex: 5,
+              child: QRView(
+                key: qrKey,
+                onQRViewCreated: _onQRViewCreated,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
+  }
+  @override
+  void initState() {
+    party = Party(partyCode: "", partyName: "", guestsInside: [], guestList: []);
+    super.initState();
   }
 }

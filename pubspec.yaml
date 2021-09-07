@@ -39,6 +39,8 @@ dependencies:
   card_swiper:
   firebase_database:
   firebase_core:
+  shared_preferences:
+  page_transition:
 
 dev_dependencies:
   flutter_test:
