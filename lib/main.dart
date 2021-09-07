@@ -28,16 +28,21 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
-      theme: ThemeData(primarySwatch: Colors.red, colorScheme: ColorScheme.dark()),
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        primarySwatch: Colors.red,
+        colorScheme: ColorScheme.dark(),
+      ),
       home: LoginPage(),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key? key, required this.partyCode, required this.ref}) : super(key: key);
+  MyHomePage({Key? key, required this.partyCode, required this.ref, required this.partyName}) : super(key: key);
   DatabaseReference ref;
   final String partyCode;
+  final String partyName;
 
   @override
   _MyHomePageState createState() => _MyHomePageState();
@@ -60,8 +65,10 @@ class _MyHomePageState extends State<MyHomePage> {
     List<int> guestlist = [];
 
     await widget.ref.child(widget.partyCode).once().then((DataSnapshot data) {
-      for (int i = 0; i < data.value.length; i++) {
-        guestlist.add(data.value[i]);
+      if (data.value != null) {
+        for (int i = 0; i < data.value.length; i++) {
+          guestlist.add(data.value[i]);
+        }
       }
     });
 
@@ -91,9 +98,7 @@ class _MyHomePageState extends State<MyHomePage> {
       final directory = (await getApplicationDocumentsDirectory()).path;
       File imgFile = new File('$directory/photo.png');
       await imgFile.writeAsBytes(image);
-      await Share.shareFiles(
-        [imgFile.path],
-      );
+      await Share.shareFiles([imgFile.path], text: "Show this code to get in to the party");
     }).catchError((onError) {
       print(onError);
     });
@@ -152,23 +157,25 @@ class _MyHomePageState extends State<MyHomePage> {
       body: Column(
         children: <Widget>[
           Expanded(
+            flex: 1,
+            child: Container(
+
+                width: MediaQuery.of(context).size.width,
+                color: _messageColor,
+                child: Center(
+                    child: Text(
+                      _message,
+                      style: TextStyle(fontSize: 30),
+                    ))),
+          ),
+
+          Expanded(
             flex: 5,
             child: QRView(
               key: qrKey,
               onQRViewCreated: _onQRViewCreated,
             ),
           ),
-          Expanded(
-            flex: 1,
-            child: Container(
-                width: MediaQuery.of(context).size.width,
-                color: _messageColor,
-                child: Center(
-                    child: Text(
-                  _message,
-                  style: TextStyle(fontSize: 30),
-                ))),
-          )
         ],
       ),
     );
@@ -180,16 +187,31 @@ class _MyHomePageState extends State<MyHomePage> {
         elevation: 0,
         backgroundColor: Colors.transparent,
         title: Text(
-          widget.partyCode.toUpperCase(),
+          widget.partyName,
           style: TextStyle(fontSize: 25),
         ),
         leadingWidth: 80,
         leading: IconButton(
-          icon: Icon(Icons.home),
+          icon: Icon(
+            Icons.home,
+            size: 30,
+          ),
           onPressed: () {
             Navigator.pop(context);
           },
         ),
+        actions: [
+          TextButton(
+              onPressed: () {
+
+                shareCode();
+
+              },
+              child: Text(
+                "Invite",
+                style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold),
+              ))
+        ],
       ),
       body: Center(
         child: Column(
@@ -199,7 +221,8 @@ class _MyHomePageState extends State<MyHomePage> {
               padding: const EdgeInsets.only(top: 90),
               child: GestureDetector(
                 onDoubleTap: () {
-                  ref.child(widget.partyCode).set([1000, 111, 1111, 111]);
+                  print(widget.partyCode);
+                  //ref.child(widget.partyCode).set([1000, 111, 1111, 111]);
                 },
                 onTap: () {
                   ref.child(widget.partyCode).once().then((DataSnapshot data) {
@@ -207,42 +230,98 @@ class _MyHomePageState extends State<MyHomePage> {
                   });
                 },
                 child: QrImage(
-                  size: 300,
+                  size: 200,
                   data: _homeID,
                   foregroundColor: Colors.white,
                   version: QrVersions.auto,
                 ),
               ),
             ),
+
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 90),
               child: CupertinoButton(
-                  color: Colors.redAccent,
-                  child: Text("Send Invite"),
+                  color: Colors.transparent,
+                  child: Text(
+                    "Send Invite",
+                    style: TextStyle(color: Colors.transparent, fontWeight: FontWeight.bold),
+                  ),
                   onPressed: () {
                     shareCode();
                   }),
             ),
-            FutureBuilder(
-              future: get_Guest_List(),
-              builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
-                if (snapshot.hasData) {
-                  return Text(
-                    snapshot.data.length.toString() + " Invitations Sent",
-                    style: TextStyle(fontSize: 30, color: Colors.redAccent, fontWeight: FontWeight.bold),
-                  );
-                }
+            Expanded(
+              child: Container(
+                decoration: new BoxDecoration(
+                    color: Colors.redAccent,
+                    borderRadius: new BorderRadius.only(
+                      topLeft: const Radius.circular(40.0),
+                      topRight: const Radius.circular(40.0),
+                    )),
+                width: MediaQuery.of(context).size.width,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 30),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 20),
+                            child: Text(
+                              "Party Info",
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30),
+                            ),
+                          )
+                        ],
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "Invitations Sent",
+                            style: TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.bold),
+                          ),
+                          FutureBuilder(
+                            future: get_Guest_List(),
+                            builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
+                              if (snapshot.hasData) {
+                                return Text(
+                                  snapshot.data.length.toString(),
+                                  style: TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.bold),
+                                );
+                              }
 
-                return Text("");
-              },
-            ),
-            Padding(
-              padding: const EdgeInsets.only(bottom: 50, top: 30),
-              child: Text(
-                _guestsInside.length.toString() + " People Inside",
-                style: TextStyle(fontSize: 30, color: Colors.redAccent, fontWeight: FontWeight.bold),
+                              return Text(
+                                "0",
+                                style: TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.bold),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 50, top: 30),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "People Inside",
+                              style: TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.bold),
+                            ),
+                            Text(
+                              _guestsInside.length.toString(),
+                              style: TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                      )
+                    ],
+                  ),
+                ),
               ),
-            )
+            ),
           ],
         ),
       ),

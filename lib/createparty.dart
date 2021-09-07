@@ -15,6 +15,25 @@ class CreateParty extends StatefulWidget {
 
 class _CreatePartyState extends State<CreateParty> {
   bool _reuse = false;
+  String _partyName = "";
+  String _partyCode = "";
+
+  SnackBar warning(String warning){
+
+
+    return SnackBar(
+      content: Text(warning,style: TextStyle(color: Colors.white),),
+      backgroundColor: Colors.redAccent,
+      action: SnackBarAction(
+        label: '',
+        textColor: Colors.white,
+        onPressed: () {
+          // Some code to undo the change.
+        },
+      ),
+    );
+
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,11 +56,20 @@ class _CreatePartyState extends State<CreateParty> {
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 30),
                           child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
                                 "Create Party",
                                 style: TextStyle(color: Colors.white, fontSize: 30, fontWeight: FontWeight.bold),
                               ),
+                              IconButton(
+                                  onPressed: () {
+                                    Navigator.pop(context);
+                                  },
+                                  icon: Icon(
+                                    Icons.close,
+                                    size: 30,
+                                  ))
                             ],
                           ),
                         ),
@@ -60,7 +88,12 @@ class _CreatePartyState extends State<CreateParty> {
                               hintText: 'Party Name',
                             ),
                             toolbarOptions: ToolbarOptions(),
-                            onSubmitted: (String code) {},
+                            onChanged: (String name) {
+                              _partyName = name;
+                            },
+                            onSubmitted: (String name) {
+                              _partyName = name;
+                            },
                           ),
                         ),
                         Padding(
@@ -78,10 +111,14 @@ class _CreatePartyState extends State<CreateParty> {
                               hintText: 'Party Password',
                             ),
                             toolbarOptions: ToolbarOptions(),
-                            onSubmitted: (String code) {},
+                            onChanged: (String code) {
+                              _partyCode = code;
+                            },
+                            onSubmitted: (String code) {
+                              _partyCode = _partyCode;
+                            },
                           ),
                         ),
-                        Spacer(),
                         Padding(
                             padding: const EdgeInsets.symmetric(vertical: 100),
                             child: ElevatedButton(
@@ -99,14 +136,26 @@ class _CreatePartyState extends State<CreateParty> {
                                 style: TextStyle(fontSize: 15),
                               ),
                               onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => MyHomePage(
-                                            partyCode: 'TestCode1234',
-                                            ref: widget.ref,
-                                          )),
-                                );
+
+                                if(_partyCode!=""&&_partyName!=""){
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => MyHomePage(
+                                          partyCode: _partyCode,
+                                          partyName: _partyName,
+                                          ref: widget.ref,
+                                        )),
+                                  );
+                                }else{
+
+                                  if(_partyName==""||_partyCode==""){
+                                    ScaffoldMessenger.of(context).showSnackBar(warning("Enter Party Name and Code"));
+                                  }
+
+
+
+                                }
                               },
                             ))
                       ],
