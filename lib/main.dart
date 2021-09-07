@@ -1,13 +1,16 @@
 import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
+import 'dart:convert';
 
 import 'package:bouncer/login.dart';
+import 'package:bouncer/partyStructure.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -20,6 +23,9 @@ import 'User.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+  ]);
   runApp(MyApp());
 }
 
@@ -54,38 +60,43 @@ class _MyHomePageState extends State<MyHomePage> {
   QRViewController? controller;
   bool _scanning = false;
   String _homeID = "";
-  List<double> _guestsInside = [];
+  late Party party;
 
   ScreenshotController screenshotController = ScreenshotController();
 
   String _message = "Scan Code";
   Color _messageColor = Colors.redAccent;
 
-  Future<List<int>> get_Guest_List() async {
-    List<int> guestlist = [];
 
-    await widget.ref.child(widget.partyCode).once().then((DataSnapshot data) {
+
+  Future<void> updateParty() async {
+    await widget.ref.child(widget.partyName).once().then((DataSnapshot data) {
+      //print(data.value);
       if (data.value != null) {
-        for (int i = 0; i < data.value.length; i++) {
-          guestlist.add(data.value[i]);
-        }
+        party.fromjson(json.decode(data.value));
+      }else{
+        print("party instance created in firebase");
+        String str = json.encode(party.toJson());
+        widget.ref.child(widget.partyName).set(str);
       }
     });
+    setState(() {
 
-    return guestlist;
+    });
   }
 
-  Future<void> update_list(int Id) async {
-    List<int> temp = await get_Guest_List();
-    temp.add(Id);
-    widget.ref.child(widget.partyCode).set(temp);
+  Future<void> uploadParty() async{
+    String str = json.encode(party.toJson());
+    widget.ref.child(widget.partyName).set(str);
   }
 
   shareCode() async {
     var rng = new Random();
 
     String inviteID = DateTime.now().microsecondsSinceEpoch.toString() + rng.nextInt(100).toString();
-    await update_list(int.parse(inviteID));
+
+    party.guestList.add(inviteID);
+    await uploadParty();
 
     screenshotController
         .captureFromWidget(
@@ -102,29 +113,35 @@ class _MyHomePageState extends State<MyHomePage> {
     }).catchError((onError) {
       print(onError);
     });
+
+    setState(() {
+
+    });
   }
 
   Future<void> scandata(Barcode result) async {
-    List<int> _guestlist = await get_Guest_List();
-
     _scanning = true;
+    await updateParty();
 
     print(result.code);
+    print(party.guestList);
 
-    if (_guestsInside.contains(double.parse(result.code))) {
+
+    if (party.isInside(result.code)) {
+
       _messageColor = Colors.orangeAccent;
       _message = "Reused Code";
     }
 
-    if (_guestlist.contains(int.parse(result.code)) && !_guestsInside.contains(double.parse(result.code))) {
-      // _guestsInside.add(double.parse(result.code));
+    if (party.onguestList(result.code) && !party.isInside(result.code)) {
+      party.guestsInside.add(result.code);
       setState(() {
         _messageColor = Colors.green;
         _message = "Approved";
       });
     }
 
-    if (!_guestlist.contains(double.parse(result.code))) {
+    if (!party.onguestList(result.code)) {
       setState(() {
         _messageColor = Colors.orangeAccent;
         _message = "Rejected";
@@ -133,10 +150,12 @@ class _MyHomePageState extends State<MyHomePage> {
 
     await Future.delayed(Duration(seconds: 1));
     setState(() {
-      _scanning = false;
       _message = "Scan Code";
       _messageColor = Colors.redAccent;
     });
+    await uploadParty();
+    _scanning = false;
+
   }
 
   void _onQRViewCreated(QRViewController controller) {
@@ -159,16 +178,14 @@ class _MyHomePageState extends State<MyHomePage> {
           Expanded(
             flex: 1,
             child: Container(
-
                 width: MediaQuery.of(context).size.width,
                 color: _messageColor,
                 child: Center(
                     child: Text(
-                      _message,
-                      style: TextStyle(fontSize: 30),
-                    ))),
+                  _message,
+                  style: TextStyle(fontSize: 30),
+                ))),
           ),
-
           Expanded(
             flex: 5,
             child: QRView(
@@ -197,15 +214,16 @@ class _MyHomePageState extends State<MyHomePage> {
             size: 30,
           ),
           onPressed: () {
-            Navigator.pop(context);
-          },
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => LoginPage()),
+            );          },
         ),
         actions: [
           TextButton(
               onPressed: () {
-
                 shareCode();
-
               },
               child: Text(
                 "Invite",
@@ -221,23 +239,26 @@ class _MyHomePageState extends State<MyHomePage> {
               padding: const EdgeInsets.only(top: 90),
               child: GestureDetector(
                 onDoubleTap: () {
-                  print(widget.partyCode);
-                  //ref.child(widget.partyCode).set([1000, 111, 1111, 111]);
+                  String str = json.encode(
+                    Party(partyName: "test", partyCode: "test", guestList: [], guestsInside: []).toJson(),
+                  );
+                  print(str);
+                 // ref.child(widget.partyCode).set(Party(partyName: "TESTNAME", partyCode: "TESTCODE", guestList: [], guestsInside: []).toJson().toString());
                 },
                 onTap: () {
-                  ref.child(widget.partyCode).once().then((DataSnapshot data) {
-                    print(data.value[0]);
+                  ref.child(widget.partyName).once().then((DataSnapshot data) {
+                    print(data.value);
                   });
+
                 },
                 child: QrImage(
                   size: 200,
-                  data: _homeID,
+                  data: "${party.partyName},${party.partyCode}",
                   foregroundColor: Colors.white,
                   version: QrVersions.auto,
                 ),
               ),
             ),
-
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 90),
               child: CupertinoButton(
@@ -283,21 +304,9 @@ class _MyHomePageState extends State<MyHomePage> {
                             "Invitations Sent",
                             style: TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.bold),
                           ),
-                          FutureBuilder(
-                            future: get_Guest_List(),
-                            builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
-                              if (snapshot.hasData) {
-                                return Text(
-                                  snapshot.data.length.toString(),
-                                  style: TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.bold),
-                                );
-                              }
-
-                              return Text(
-                                "0",
-                                style: TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.bold),
-                              );
-                            },
+                          Text(
+                            party.guestList.length.toString(),
+                            style: TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
@@ -311,7 +320,7 @@ class _MyHomePageState extends State<MyHomePage> {
                               style: TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.bold),
                             ),
                             Text(
-                              _guestsInside.length.toString(),
+                              party.guestsInside.length.toString(),
                               style: TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.bold),
                             ),
                           ],
@@ -338,5 +347,12 @@ class _MyHomePageState extends State<MyHomePage> {
         children: [page1(widget.ref), page2()],
       ),
     );
+  }
+
+  @override
+  void initState() {
+    party = Party(partyCode: widget.partyCode, partyName: widget.partyName, guestsInside: [], guestList: []);
+    updateParty();
+    super.initState();
   }
 }

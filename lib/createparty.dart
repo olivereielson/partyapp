@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:bouncer/partyStructure.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/cupertino.dart';
@@ -35,6 +37,19 @@ class _CreatePartyState extends State<CreateParty> {
     );
 
   }
+
+  Future<bool> loginfo(ref) async {
+    DataSnapshot snapshot = await ref.child(_partyName).once();
+
+    if (!snapshot.exists) {
+      return true;
+    }
+    ScaffoldMessenger.of(context).showSnackBar(warning("Name Already Exists"));
+
+    return false;
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -136,23 +151,25 @@ class _CreatePartyState extends State<CreateParty> {
                                 "Create Party",
                                 style: TextStyle(fontSize: 15),
                               ),
-                              onPressed: () {
+                              onPressed: () async {
 
                                 if(_partyCode!=""&&_partyName!=""){
+                                  bool test = await loginfo(widget.ref);
+                                  if(test){
+
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) => MyHomePage(
+                                            partyCode: _partyCode,
+                                            partyName: _partyName,
+                                            ref: widget.ref,
+                                          )),
+                                    );
+                                  }
 
 
-                                  /*
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) => MyHomePage(
-                                          partyCode: _partyCode,
-                                          partyName: _partyName,
-                                          ref: widget.ref,
-                                        )),
-                                  );
 
-                                   */
                                 }else{
 
                                   if(_partyName==""||_partyCode==""){

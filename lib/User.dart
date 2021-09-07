@@ -1,10 +1,14 @@
+import 'package:bouncer/UserScan.dart';
 import 'package:card_swiper/card_swiper.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 class Userpage extends StatefulWidget {
+  DatabaseReference ref;
+  Userpage(this.ref);
   @override
   _UserpageState createState() => _UserpageState();
 }
@@ -20,62 +24,82 @@ class _UserpageState extends State<Userpage> {
 
   Scaffold savedInvites() {
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Saved Invites"),
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-      ),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: MediaQuery.of(context).size.width,
-            height: 400,
-            child: Swiper(
-              itemBuilder: (BuildContext context, int index) {
-                return Container(
-                  height: 300,
-                  width: 300,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: ((MediaQuery.of(context).size.width - 300) / 2)),
-                        child: Text(
-                          "Lax Party",
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30),
-                        ),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: ((MediaQuery.of(context).size.width - 300) / 2)),
-                        child: Text(
-                          "November 3",
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-                        ),
-                      ),
-                      Center(
-                        child: Card(
-                          color: Colors.redAccent,
-                          child: QrImage(
-                            size: 300,
-                            data: index.toString(),
-                            foregroundColor: Colors.white,
-                            version: QrVersions.auto,
-                          ),
-                        ),
-                      ),
-                    ],
+
+      body: SafeArea(
+        bottom: true,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 20),
+              child: Row(
+                children: [
+                  Text(
+                    "Saved Passes",
+                    style: TextStyle(color: Colors.white, fontSize: 30, fontWeight: FontWeight.bold),
                   ),
-                );
-              },
-              itemCount: 3,
-              pagination: SwiperPagination(),
-              control: SwiperControl(
-                color: Colors.transparent,
+                ],
               ),
             ),
-          ),
-        ],
+
+
+
+
+            Container(
+              width: MediaQuery.of(context).size.width,
+              height: 250,
+
+              child: Swiper(
+                itemBuilder: (BuildContext context, int index) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Container(
+                      height: 100,
+                      width: 200,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10),
+                        color: Colors.redAccent,
+                      ),
+                      child: Center(
+                        child: QrImage(
+                          size: 200,
+                          data: index.toString(),
+                          foregroundColor: Colors.white,
+                          version: QrVersions.auto,
+                        ),
+                      ),
+                    ),
+                  );
+                },
+                itemCount: 3,
+                pagination: SwiperPagination(),
+                control: SwiperControl(
+                  color: Colors.transparent,
+                ),
+              ),
+            ),
+
+            Spacer(),
+
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 90),
+              child: CupertinoButton(
+
+                color: Colors.redAccent,
+                  child: Text("Scan New Pass",style: TextStyle(color: Colors.white),), onPressed: (){
+
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => UserScan(widget.ref)),
+                );
+
+
+              }),
+            )
+
+
+          ],
+        ),
       ),
     );
   }
