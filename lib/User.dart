@@ -99,19 +99,32 @@ class _UserpageState extends State<Userpage> {
                                   borderRadius: BorderRadius.circular(10),
                                   color: Colors.redAccent,
                                 ),
-                                child: Center(
-                                  child: QrImage(
-                                    size: 200,
-                                    data: snapshot.data!.getStringList("wallet")![index],
-                                    foregroundColor: Colors.white,
-                                    version: QrVersions.auto,
-                                  ),
+                                child: Stack(
+                                  children: [
+
+                                    Positioned(
+
+                                        child: Text("id:" +snapshot.data!.getStringList("wallet")![index],style: TextStyle(color: Colors.white.withOpacity(0.6)),),
+                                      bottom: 5,
+                                      right: 5,
+
+                                    ),
+
+                                    Center(
+                                      child: QrImage(
+                                        size: 200,
+                                        data: snapshot.data!.getStringList("wallet")![index],
+                                        foregroundColor: Colors.white,
+                                        version: QrVersions.auto,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),
                           );
                         },
-                        itemCount: snapshot.data!.getStringList("wallet")!.length,
+                        itemCount:snapshot.data!.getStringList("wallet")!=null? snapshot.data!.getStringList("wallet")!.length:0,
                         pagination: DotSwiperPaginationBuilder(color: Colors.transparent, activeColor: Colors.transparent),
                         loop: false,
                         control: SwiperControl(color: Colors.transparent, disableColor: Colors.transparent),

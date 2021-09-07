@@ -41,6 +41,7 @@ dependencies:
   firebase_core:
   shared_preferences:
   page_transition:
+  flutter_native_splash:
 
 dev_dependencies:
   flutter_test:
@@ -87,3 +88,7 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages
+#flutter pub run flutter_native_splash:create
+
+flutter_native_splash:
+  color: "#2b2b2b"

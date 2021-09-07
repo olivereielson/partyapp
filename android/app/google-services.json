@@ -1,0 +1,83 @@
+{
+  "project_info": {
+    "project_number": "830683052401",
+    "firebase_url": "https://party-d1c46-default-rtdb.firebaseio.com",
+    "project_id": "party-d1c46",
+    "storage_bucket": "party-d1c46.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:830683052401:android:f93c3c2d94dc133f4fded0",
+        "android_client_info": {
+          "package_name": "com.example.bouncer"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "830683052401-s1hbb79ss8l898fct8cu90s500npd9lp.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDN4weZymyxai-cldPNdpTroDVtIWy2RX4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "830683052401-s1hbb79ss8l898fct8cu90s500npd9lp.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "830683052401-9r3evnbh2jv4r5rofddre6t0ujhtnoe0.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.bouncer"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:830683052401:android:9e00a3a3da71e3cf4fded0",
+        "android_client_info": {
+          "package_name": "om.example.bouncer"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "830683052401-s1hbb79ss8l898fct8cu90s500npd9lp.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDN4weZymyxai-cldPNdpTroDVtIWy2RX4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "830683052401-s1hbb79ss8l898fct8cu90s500npd9lp.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "830683052401-9r3evnbh2jv4r5rofddre6t0ujhtnoe0.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.bouncer"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

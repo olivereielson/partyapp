@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:bouncer/partyStructure.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -122,6 +123,7 @@ class _UserScanState extends State<UserScan> {
     controller.scannedDataStream.listen((scanData) {
       result = scanData;
 
+      print("scanned");
       if (!_scanning) {
         scandata(result!);
       }
@@ -181,4 +183,19 @@ class _UserScanState extends State<UserScan> {
     party = Party(partyCode: "", partyName: "", guestsInside: [], guestList: []);
     super.initState();
   }
+  @override
+  void reassemble() {
+    super.reassemble();
+    if (Platform.isAndroid) {
+      controller!.pauseCamera();
+    } else if (Platform.isIOS) {
+      controller!.resumeCamera();
+    }
+  }
+  @override
+  void dispose() {
+    controller?.dispose();
+    super.dispose();
+  }
+
 }
