@@ -97,8 +97,6 @@ class _MyHomePageState extends State<MyHomePage> {
     }).catchError((onError) {
       print(onError);
     });
-
-    setState(() {});
   }
 
   Future<void> scandata(Barcode result) async {

@@ -1,3 +1,4 @@
+import 'package:bouncer/createparty.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -66,11 +67,17 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     CupertinoButton(color: Colors.redAccent, child: Text("Create Party"), onPressed: () {
 
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => CreateParty()),);
 
+                      /*
                       Navigator.push(
                         context,
                         MaterialPageRoute(builder: (context) => MyHomePage(partyCode: 'TestCode1234',ref: ref,)),
                       );
+
+                       */
 
                     })
                   ],
