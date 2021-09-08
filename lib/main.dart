@@ -231,44 +231,32 @@ class _MyHomePageState extends State<MyHomePage> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 IconButton(
-                    onPressed: () {
-                      Navigator.pop(context, "0");
-                    },
+                    onPressed: () async {
+                      await controller!.flipCamera();
+                      await controller!.resumeCamera();                    },
                     icon: Icon(
-                      Icons.arrow_back_outlined,
+                      Icons.flip_camera_ios_rounded,
                       size: 30,
+                      color: Colors.white,
                     )),
                 Text(
                   _message,
                   style: TextStyle(fontSize: 30),
                 ),
                 SafeArea(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      IconButton(
-                          onPressed: () async {
-                            print(controller!.getCameraInfo());
-                            await controller!.flipCamera();
-                            await controller!.resumeCamera();
-                          },
-                          icon: Icon(Icons.flip_camera_ios)),
-                      IconButton(
-                          onPressed: () async {
-                            if (await controller!.getCameraInfo() == CameraFacing.back) {
-                              await controller!.toggleFlash();
-                            } else {
-                              ScaffoldMessenger.of(context).showSnackBar(warning("Flash can only be used with front camera"));
-                              print("hehe");
-                            }
+                  child: IconButton(
+                      onPressed: () async {
+                        if (await controller!.getCameraInfo() == CameraFacing.back) {
+                          await controller!.toggleFlash();
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(warning("Flash can only be used with front camera"));
+                          print("hehe");
+                        }
 
-                            flash = (await controller!.getFlashStatus())!;
-                            setState(() {});
-                          },
-                          icon: Icon(flash ? Icons.flashlight_on : Icons.flashlight_off)),
-                    ],
-                  ),
+                        flash = (await controller!.getFlashStatus())!;
+                        setState(() {});
+                      },
+                      icon: Icon(flash ? Icons.flashlight_on : Icons.flashlight_off)),
                 ),
               ],
             ),
@@ -327,7 +315,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         Positioned(
                           child: Text(
                             "Invite Card",
-                            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                            style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold,color: Colors.transparent),
                           ),
                           top: 5,
                           left: 5,
@@ -343,7 +331,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                     backgroundColor: Colors.redAccent,
                                     elevation: 50,
                                     title: Text("Invite Card"),
-                                    content: Text("Any user who scans this code with the app will bve given a invite code"),
+                                    content: Text("Any user who scans this code with the app will be given a invite code"),
                                     actions: [
                                       TextButton(
                                         child: Text("OK",style: TextStyle(color: Colors.white),),
@@ -458,6 +446,8 @@ class _MyHomePageState extends State<MyHomePage> {
     return WillPopScope(
       onWillPop: () async => false,
       child: PageView(
+        physics: ClampingScrollPhysics(),
+
         controller: PageController(keepPage: true),
         scrollDirection: Axis.vertical,
         children: [page1(widget.ref), page2()],

@@ -33,19 +33,20 @@ class _UserpageState extends State<Userpage> {
                 position: ClipPosition.bottom,
                 list: [
                   ThirdOrderBezierCurveSection(
-                    p1: Offset(100, 100),
-                    p2: Offset(50, 100),
-                    p3: Offset(400, 150),
-                    p4: Offset(300, 100),
+                    p1: Offset(0, 100),
+                    p2: Offset(50, 250),
+                    p3: Offset(MediaQuery.of(context).size.width*0.7, 100),
+                    p4: Offset(MediaQuery.of(context).size.width, 220),
                   ),
                 ],
               ),
 
               child: Container(
 
-                height: 200,
+                height: 300,
                 width: MediaQuery.of(context).size.width,
                 color: Colors.redAccent,
+
 
 
               ),
@@ -55,10 +56,10 @@ class _UserpageState extends State<Userpage> {
           SafeArea(
             bottom: true,
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 80),
+                  padding: const EdgeInsets.fromLTRB(30,20,30,0),
                   child: Row(
                     children: [
                       Text(
@@ -203,9 +204,8 @@ class _UserpageState extends State<Userpage> {
                         ;
                       },
                     )),
-                Spacer(),
                 Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 90),
+                  padding: const EdgeInsets.symmetric(vertical: 30),
                   child: CupertinoButton(
                       color: Colors.redAccent,
                       child: Text(
