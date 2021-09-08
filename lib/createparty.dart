@@ -28,7 +28,7 @@ class _CreatePartyState extends State<CreateParty> {
       content: Text(warning,style: TextStyle(color: Colors.white),),
       backgroundColor: Colors.redAccent,
       action: SnackBarAction(
-        label: '',
+        label: 'Dismiss',
         textColor: Colors.white,
         onPressed: () {
           // Some code to undo the change.
@@ -92,6 +92,8 @@ class _CreatePartyState extends State<CreateParty> {
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 50),
                           child: TextField(
+                            cursorColor: Colors.redAccent,
+
                             decoration: InputDecoration(
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.all(Radius.circular(10)),
@@ -115,6 +117,8 @@ class _CreatePartyState extends State<CreateParty> {
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
                           child: TextField(
+                            cursorColor: Colors.redAccent,
+
                             decoration: InputDecoration(
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.all(Radius.circular(10)),
@@ -139,7 +143,7 @@ class _CreatePartyState extends State<CreateParty> {
                             padding: const EdgeInsets.symmetric(vertical: 100),
                             child: ElevatedButton(
                               style: ElevatedButton.styleFrom(
-                                primary: Colors.red,
+                                primary: Colors.redAccent,
                                 onPrimary: Colors.white,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(10.0),

@@ -24,6 +24,7 @@ class _UserScanState extends State<UserScan> {
   String _message="Scan Code";
   QRViewController? controller;
   late Party party;
+  bool flash=false;
 
   bool _scanning = false;
 
@@ -118,6 +119,24 @@ class _UserScanState extends State<UserScan> {
     _scanning = false;
   }
 
+  SnackBar warning(String warning) {
+    return SnackBar(
+
+      content: Text(
+        warning,
+        style: TextStyle(color: Colors.white),
+      ),
+      backgroundColor: Colors.redAccent,
+      action: SnackBarAction(
+        label: 'ok',
+        textColor: Colors.white,
+        onPressed: () {
+          // Some code to undo the change.
+        },
+      ),
+    );
+  }
+
   void _onQRViewCreated(QRViewController controller) {
     this.controller = controller;
     controller.scannedDataStream.listen((scanData) {
@@ -136,43 +155,70 @@ class _UserScanState extends State<UserScan> {
       onWillPop: () async => false,
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        body: Column(
+        body: Stack(
           children: <Widget>[
-            Expanded(
-              flex: 1,
-              child: Container(
-                width: MediaQuery.of(context).size.width,
-                color: _mesageColor,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    IconButton(
-                        onPressed: () {
-                          Navigator.pop(context, "0");
-                        },
-                        icon: Icon(
-                          Icons.arrow_back_outlined,
-                          size: 30,
-                        )),
-                    Text(
-                      _message,
-                      style: TextStyle(fontSize: 30),
-                    ),
-                    Icon(
-                      Icons.code,
-                      color: Colors.transparent,
-                    )
-                  ],
+            QRView(
+              key: qrKey,
+              onQRViewCreated: _onQRViewCreated,
+            ),
+            Container(
+              height: 180,
+              width: MediaQuery.of(context).size.width,
+              decoration: new BoxDecoration(
+                  color: _mesageColor.withOpacity(0.9),
+                  borderRadius: new BorderRadius.only(
+                    bottomLeft: const Radius.circular(40.0),
+                    bottomRight: const Radius.circular(40.0),
+                  )),              child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                IconButton(
+                    onPressed: () {
+                      Navigator.pop(context, "0");
+                    },
+                    icon: Icon(
+                      Icons.arrow_back_outlined,
+                      size: 30,
+                    )),
+                Text(
+                  _message,
+                  style: TextStyle(fontSize: 30),
                 ),
-              ),
+                 SafeArea(
+                   child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      IconButton(
+                          onPressed: () async {
+                            print(controller!.getCameraInfo());
+                            await controller!.flipCamera();
+                            await controller!.resumeCamera();
+
+                          },
+                          icon: Icon(Icons.flip_camera_ios)),
+                      IconButton(
+                          onPressed: () async {
+                            if (await controller!.getCameraInfo() == CameraFacing.back) {
+                              await controller!.toggleFlash();
+                            } else {
+
+                              ScaffoldMessenger.of(context).showSnackBar(warning("Flash can only be used with front camera"));
+                              print("hehe");
+                            }
+
+                            flash = (await controller!.getFlashStatus())!;
+                            setState(() {});
+                          },
+                          icon: Icon(flash ? Icons.flashlight_on : Icons.flashlight_off)),
+                    ],
+                ),
+                 ),
+
+              ],
             ),
-            Expanded(
-              flex: 5,
-              child: QRView(
-                key: qrKey,
-                onQRViewCreated: _onQRViewCreated,
-              ),
             ),
+
           ],
         ),
       ),
