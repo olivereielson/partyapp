@@ -11,14 +11,14 @@ PODS:
   - Firebase/Database (8.6.0):
     - Firebase/CoreOnly
     - FirebaseDatabase (~> 8.6.0)
-  - firebase_analytics (8.3.1):
+  - firebase_analytics (8.3.2):
     - Firebase/Analytics (= 8.6.0)
     - firebase_core
     - Flutter
   - firebase_core (1.6.0):
     - Firebase/CoreOnly (= 8.6.0)
     - Flutter
-  - firebase_database (7.2.1):
+  - firebase_database (7.2.2):
     - Firebase/Database (= 8.6.0)
     - firebase_core
     - Flutter
@@ -167,9 +167,9 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   camera: 3164201dc344383e62282964016528c4f5a9ad50
   Firebase: 21ac9f28b09a8bdfc005f34c984fca84e7e8786d
-  firebase_analytics: de68415415782a5ad1d922d5c51789afbb2bb82d
+  firebase_analytics: 039357074df292fb8a58e119206762d10483a8ec
   firebase_core: c21ac09a8d23afd3594b56ed786bad12e5266bba
-  firebase_database: f25f93149ac88611b22f09f42d48820cadc4b6b2
+  firebase_database: 34059efd45170b983afe5b870a6716cacc3f50c4
   FirebaseAnalytics: 8f32ae54ad42754f503354782575c4ddfc1425c3
   FirebaseCore: 620b677f70f5470a8e59cb77f3ddc666f6f09785
   FirebaseCoreDiagnostics: 3721920bde3a9a6d5aa093c1d25e9d3e47f694af
@@ -191,4 +191,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: fe0e1ee7f3d1f7d00b11b474b62dd62134535aea
 
-COCOAPODS: 1.10.1
+COCOAPODS: 1.11.0
