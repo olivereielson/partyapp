@@ -5,6 +5,8 @@ import 'dart:convert';
 
 import 'package:bouncer/login.dart';
 import 'package:bouncer/partyStructure.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:firebase_analytics/observer.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/cupertino.dart';
@@ -32,6 +34,8 @@ Future<void> main() async {
 }
 
 class MyApp extends StatelessWidget {
+  FirebaseAnalytics analytics = FirebaseAnalytics();
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -41,16 +45,22 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.red,
         colorScheme: ColorScheme.dark(),
       ),
-      home: LoginPage(),
+      navigatorObservers: [
+        FirebaseAnalyticsObserver(analytics: analytics),
+      ],
+      home: LoginPage(analytics: analytics,),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key? key, required this.partyCode, required this.ref, required this.partyName}) : super(key: key);
+
+  MyHomePage({Key? key, required this.partyCode, required this.ref, required this.partyName,required this.analytics}) : super(key: key);
   DatabaseReference ref;
   final String partyCode;
   final String partyName;
+  final FirebaseAnalytics analytics;
+
 
   @override
   _MyHomePageState createState() => _MyHomePageState();
@@ -167,6 +177,12 @@ class _MyHomePageState extends State<MyHomePage> {
     if (party.isInside(result.code)) {
       _messageColor = Colors.orangeAccent;
       _message = "Reused Code";
+      widget.analytics.logEvent(
+        name: 'invite_scanned',
+        parameters: <String, dynamic>{
+          'outcome': 'reused',
+        },
+      );
     }
 
     if (party.onguestList(result.code) && !party.isInside(result.code)) {
@@ -174,6 +190,12 @@ class _MyHomePageState extends State<MyHomePage> {
       setState(() {
         _messageColor = Colors.green;
         _message = "Approved";
+        widget.analytics.logEvent(
+          name: 'invite_scanned',
+          parameters: <String, dynamic>{
+            'outcome': 'approved',
+          },
+        );
       });
     }
 
@@ -181,6 +203,12 @@ class _MyHomePageState extends State<MyHomePage> {
       setState(() {
         _messageColor = Colors.orangeAccent;
         _message = "Rejected";
+        widget.analytics.logEvent(
+          name: 'invite_scanned',
+          parameters: <String, dynamic>{
+            'outcome': 'rejected',
+          },
+        );
       });
     }
 
@@ -233,7 +261,19 @@ class _MyHomePageState extends State<MyHomePage> {
                 IconButton(
                     onPressed: () async {
                       await controller!.flipCamera();
-                      await controller!.resumeCamera();                    },
+                      await controller!.resumeCamera();
+
+                      CameraFacing cf= await controller!.getCameraInfo();
+
+
+                      widget.analytics.logEvent(
+                        name: 'camera_flipped',
+                        parameters: <String, dynamic>{
+                          'front': cf==CameraFacing.back?true:false,
+                        },
+                      );
+
+                      },
                     icon: Icon(
                       Icons.flip_camera_ios_rounded,
                       size: 30,
@@ -246,12 +286,26 @@ class _MyHomePageState extends State<MyHomePage> {
                 SafeArea(
                   child: IconButton(
                       onPressed: () async {
+                        flash = (await controller!.getFlashStatus())!;
+
                         if (await controller!.getCameraInfo() == CameraFacing.back) {
                           await controller!.toggleFlash();
+                          widget.analytics.logEvent(
+                            name: 'flash_toggled',
+                            parameters: <String, dynamic>{
+                              'flash': flash,
+                              'success':true
+                            },
+                          );
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(warning("Flash can only be used with front camera"));
-                          print("hehe");
-                        }
+                          widget.analytics.logEvent(
+                            name: 'flash_toggled',
+                            parameters: <String, dynamic>{
+                              'flash': flash,
+                              'success':false
+                            },
+                          );                        }
 
                         flash = (await controller!.getFlashStatus())!;
                         setState(() {});
@@ -282,13 +336,16 @@ class _MyHomePageState extends State<MyHomePage> {
             size: 30,
           ),
           onPressed: () {
-            Navigator.push(context, PageTransition(type: PageTransitionType.topToBottom, duration: Duration(milliseconds: 500), child: LoginPage()));
+            Navigator.push(context, PageTransition(type: PageTransitionType.topToBottom, duration: Duration(milliseconds: 500), child: LoginPage(analytics: widget.analytics,)));
           },
         ),
         actions: [
           TextButton(
               onPressed: () {
                 shareCode();
+                widget.analytics.logEvent(
+                  name: 'invite_sent',
+                );
               },
               child: Text(
                 "Invite",
@@ -324,6 +381,11 @@ class _MyHomePageState extends State<MyHomePage> {
                           child: IconButton(
                             icon: Icon(Icons.info),
                             onPressed: () {
+
+                              widget.analytics.logEvent(
+                                name: 'info_card_clicked',
+                              );
+
                               showDialog(
                                 context: context,
                                 builder: (BuildContext context) {
@@ -415,7 +477,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         ],
                       ),
                       Padding(
-                        padding: const EdgeInsets.only(bottom: 50, top: 30),
+                        padding: const EdgeInsets.only(bottom: 20, top: 20),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -459,6 +521,14 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     party = Party(partyCode: widget.partyCode, partyName: widget.partyName, guestsInside: [], guestList: []);
     updateParty();
+    _testSetCurrentScreen();
     super.initState();
+  }
+
+  Future<void> _testSetCurrentScreen() async {
+    await widget.analytics.setCurrentScreen(
+      screenName: 'Party Home Page',
+      screenClassOverride: 'Party Home Page',
+    );
   }
 }

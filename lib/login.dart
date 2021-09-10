@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:bouncer/User.dart';
 import 'package:bouncer/createparty.dart';
 import 'package:bouncer/partyStructure.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
@@ -14,6 +15,9 @@ import 'package:proste_bezier_curve/proste_bezier_curve.dart';
 import 'main.dart';
 
 class LoginPage extends StatefulWidget {
+  LoginPage({required this.analytics});
+  final FirebaseAnalytics analytics;
+
   @override
   _LoginPageState createState() => _LoginPageState();
 }
@@ -29,7 +33,7 @@ class _LoginPageState extends State<LoginPage> {
         warning,
         style: TextStyle(color: Colors.white),
       ),
-      backgroundColor: Colors.redAccent,
+      backgroundColor: Color.fromRGBO(43, 43, 43, 1),
       action: SnackBarAction(
         label: 'Dismiss',
         textColor: Colors.white,
@@ -80,7 +84,7 @@ class _LoginPageState extends State<LoginPage> {
         dragStartBehavior: DragStartBehavior.down,
 
         children: [
-          Userpage(ref),
+          Userpage(ref,analytics: widget.analytics,),
           Scaffold(
             body: GestureDetector(
               onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
@@ -185,11 +189,18 @@ class _LoginPageState extends State<LoginPage> {
                                       style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                                     ),
                                     onPressed: () async {
-                                      print("cliked");
                                       if (_partyCode != "" && _partyName != "") {
                                         bool test = await loginfo(ref);
 
                                         if (!test) {
+
+                                          widget.analytics.logEvent(name: "party_logg_in",
+                                            parameters: <String, dynamic>{
+                                              'success ': true,
+                                            },
+
+                                          );
+
                                           Navigator.push(
                                             context,
                                             MaterialPageRoute(
@@ -197,12 +208,19 @@ class _LoginPageState extends State<LoginPage> {
                                                       partyCode: _partyCode,
                                                       ref: ref,
                                                       partyName: _partyName,
+                                                  analytics: widget.analytics,
                                                     )),
                                           );
                                         }
                                       } else {
                                         if (_partyName == "" || _partyCode == "") {
                                           ScaffoldMessenger.of(context).showSnackBar(warning("Enter Party Name and Code"));
+                                          widget.analytics.logEvent(name: "party_logg_in",
+                                            parameters: <String, dynamic>{
+                                              'success ': false,
+                                            },
+
+                                          );
                                         }
                                       }
 
@@ -232,7 +250,7 @@ class _LoginPageState extends State<LoginPage> {
                             child: Center(
                               child: TextButton(
                                 onPressed: () {
-                                  Navigator.push(context, PageTransition(type: PageTransitionType.bottomToTop, duration: Duration(milliseconds: 500), child: CreateParty(ref)));
+                                  Navigator.push(context, PageTransition(type: PageTransitionType.bottomToTop, duration: Duration(milliseconds: 500), child: CreateParty(ref,analytics: widget.analytics,)));
                                 },
                                 child: Text(
                                   "Create Party",
@@ -251,4 +269,18 @@ class _LoginPageState extends State<LoginPage> {
       ),
     );
   }
+
+  Future<void> _testSetCurrentScreen() async {
+    await widget.analytics.setCurrentScreen(
+      screenName: 'LogIn Page',
+      screenClassOverride: 'LoginPage',
+    );
+  }
+
+  @override
+  void initState() {
+    _testSetCurrentScreen();
+    super.initState();
+  }
 }
+

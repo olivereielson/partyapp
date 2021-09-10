@@ -2,14 +2,15 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:bouncer/partyStructure.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 
 class UserScan extends StatefulWidget {
-  UserScan(this.ref);
-
+  UserScan(this.ref,{required this.analytics});
+  final FirebaseAnalytics analytics;
   DatabaseReference ref;
 
   @override
@@ -191,21 +192,39 @@ class _UserScanState extends State<UserScan> {
                     children: [
                       IconButton(
                           onPressed: () async {
-                            print(controller!.getCameraInfo());
                             await controller!.flipCamera();
                             await controller!.resumeCamera();
+                            CameraFacing cf= await controller!.getCameraInfo();
+                            widget.analytics.logEvent(
 
+                              name: 'camera_flipped',
+                              parameters: <String, dynamic>{
+                                'front': cf==CameraFacing.back?true:false,
+                              },
+                            );
                           },
                           icon: Icon(Icons.flip_camera_ios)),
                       IconButton(
                           onPressed: () async {
                             if (await controller!.getCameraInfo() == CameraFacing.back) {
                               await controller!.toggleFlash();
+                              widget.analytics.logEvent(
+                                name: 'flash_toggled',
+                                parameters: <String, dynamic>{
+                                  'flash': flash,
+                                  'success':true
+                                },
+                              );
                             } else {
 
                               ScaffoldMessenger.of(context).showSnackBar(warning("Flash can only be used with front camera"));
-                              print("hehe");
-                            }
+                              widget.analytics.logEvent(
+                                name: 'flash_toggled',
+                                parameters: <String, dynamic>{
+                                  'flash': flash,
+                                  'success':false
+                                },
+                              );                            }
 
                             flash = (await controller!.getFlashStatus())!;
                             setState(() {});
@@ -224,9 +243,19 @@ class _UserScanState extends State<UserScan> {
       ),
     );
   }
+
+  Future<void> _testSetCurrentScreen() async {
+    await widget.analytics.setCurrentScreen(
+      screenName: 'User Scan Page',
+      screenClassOverride: 'UserScanPage',
+    );
+  }
+
+
   @override
   void initState() {
     party = Party(partyCode: "", partyName: "", guestsInside: [], guestList: []);
+    _testSetCurrentScreen();
     super.initState();
   }
   @override

@@ -1,5 +1,6 @@
 import 'package:bouncer/UserScan.dart';
 import 'package:card_swiper/card_swiper.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -10,8 +11,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class Userpage extends StatefulWidget {
   DatabaseReference ref;
+  final FirebaseAnalytics analytics;
 
-  Userpage(this.ref);
+
+  Userpage(this.ref,{required this.analytics});
 
   @override
   _UserpageState createState() => _UserpageState();
@@ -108,6 +111,7 @@ class _UserpageState extends State<Userpage> {
                                 padding: const EdgeInsets.symmetric(horizontal: 20),
                                 child: GestureDetector(
                                   onLongPress: () {
+                                    widget.analytics.logEvent(name: "user_card_long_pressed");
                                     showDialog(
                                       context: context,
                                       builder: (context) => CupertinoAlertDialog(
@@ -137,7 +141,7 @@ class _UserpageState extends State<Userpage> {
                                                 } else {
                                                   prefs.setStringList("wallet", []);
                                                 }
-
+                                                widget.analytics.logEvent(name: "user_card_deleted");
                                                 setState(() {});
                                                 Navigator.pop(context);
                                               }),
@@ -215,7 +219,7 @@ class _UserpageState extends State<Userpage> {
                       onPressed: () async {
                         String id = await Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => UserScan(widget.ref)),
+                          MaterialPageRoute(builder: (context) => UserScan(widget.ref,analytics: widget.analytics,)),
                         );
 
                         if (id != "0") {
@@ -250,5 +254,18 @@ class _UserpageState extends State<Userpage> {
   @override
   Widget build(BuildContext context) {
     return WillPopScope(onWillPop: () async => false, child: savedInvites());
+  }
+
+  Future<void> _testSetCurrentScreen() async {
+    await widget.analytics.setCurrentScreen(
+      screenName: 'User Page',
+      screenClassOverride: 'UserPage',
+    );
+  }
+
+  @override
+  void initState() {
+    _testSetCurrentScreen();
+    super.initState();
   }
 }

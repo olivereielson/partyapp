@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:bouncer/partyStructure.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -10,8 +11,9 @@ import 'main.dart';
 
 class CreateParty extends StatefulWidget {
   DatabaseReference ref;
+  final FirebaseAnalytics analytics;
 
-  CreateParty(this.ref);
+  CreateParty(this.ref, {required this.analytics});
 
   @override
   _CreatePartyState createState() => _CreatePartyState();
@@ -22,12 +24,13 @@ class _CreatePartyState extends State<CreateParty> {
   String _partyName = "";
   String _partyCode = "";
 
-  SnackBar warning(String warning){
-
-
+  SnackBar warning(String warning) {
     return SnackBar(
-      content: Text(warning,style: TextStyle(color: Colors.white),),
-      backgroundColor: Colors.redAccent,
+      content: Text(
+        warning,
+        style: TextStyle(color: Colors.white),
+      ),
+      backgroundColor: Color.fromRGBO(43, 43, 43, 1),
       action: SnackBarAction(
         label: 'Dismiss',
         textColor: Colors.white,
@@ -36,7 +39,6 @@ class _CreatePartyState extends State<CreateParty> {
         },
       ),
     );
-
   }
 
   Future<bool> loginfo(ref) async {
@@ -50,75 +52,50 @@ class _CreatePartyState extends State<CreateParty> {
     return false;
   }
 
-
+  Future<void> _testSetCurrentScreen() async {
+    await widget.analytics.setCurrentScreen(
+      screenName: 'Create Party Page',
+      screenClassOverride: 'CreatePartyPage',
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async => false,
       child: Scaffold(
-        body: Stack(
-          children: [
-            Positioned(
-              bottom:0,
-              child: ClipPath(
-                clipper: ProsteThirdOrderBezierCurve(
-                  position: ClipPosition.top,
-                  list: [
-                    ThirdOrderBezierCurveSection(
-                      p1: Offset(0, 600),
-                      p2: Offset(150, 500),
-                      p3: Offset(70, 750),
-                      p4: Offset(0, 600),
-                    ),
-                  ],
-                ),
-
-                child: Container(
-
-                  height: 700,
-                  width: MediaQuery.of(context).size.width,
-                  color: Colors.redAccent,
-
-
-                ),
-              ),
-            ),
-            Positioned(
-              top:0,
-              child: ClipPath(
-                clipper: ProsteThirdOrderBezierCurve(
-                  position: ClipPosition.bottom,
-                  list: [
-                    ThirdOrderBezierCurveSection(
-                      p1: Offset(0, 50),
-                      p2: Offset(MediaQuery.of(context).size.width*0.4, 0),
-                      p3: Offset(MediaQuery.of(context).size.width*0.7, 100),
-                      p4: Offset(MediaQuery.of(context).size.width, 120),
-                    ),
-                  ],
-                ),
-
-                child: Container(
-
-                  height: 300,
-                  width: MediaQuery.of(context).size.width,
-                  color: Colors.transparent,
-
-
-
-                ),
-              ),
-            ),
-            GestureDetector(
-              onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-              child: ListView(
-                physics: NeverScrollableScrollPhysics(),
-                children: [
-                  Container(
-                    height: MediaQuery.of(context).size.height,
-                    child: SafeArea(
-                      child: Padding(
+        body: GestureDetector(
+          onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+          child: ListView(
+            physics: NeverScrollableScrollPhysics(),
+            children: [
+              Container(
+                height: MediaQuery.of(context).size.height,
+                child: SafeArea(
+                  child: Stack(
+                    children: [
+                      Positioned(
+                        bottom: 0,
+                        child: ClipPath(
+                          clipper: ProsteThirdOrderBezierCurve(
+                            position: ClipPosition.top,
+                            list: [
+                              ThirdOrderBezierCurveSection(
+                                p1: Offset(0, 500),
+                                p2: Offset(150, 400),
+                                p3: Offset(70, 650),
+                                p4: Offset(0, 500),
+                              ),
+                            ],
+                          ),
+                          child: Container(
+                            height: 650,
+                            width: MediaQuery.of(context).size.width,
+                            color: Colors.redAccent,
+                          ),
+                        ),
+                      ),
+                      Padding(
                         padding: const EdgeInsets.only(top: 90),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.start,
@@ -147,7 +124,6 @@ class _CreatePartyState extends State<CreateParty> {
                               padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 50),
                               child: TextField(
                                 cursorColor: Colors.redAccent,
-
                                 decoration: InputDecoration(
                                   focusedBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.all(Radius.circular(10)),
@@ -172,7 +148,6 @@ class _CreatePartyState extends State<CreateParty> {
                               padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
                               child: TextField(
                                 cursorColor: Colors.redAccent,
-
                                 decoration: InputDecoration(
                                   focusedBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.all(Radius.circular(10)),
@@ -210,46 +185,57 @@ class _CreatePartyState extends State<CreateParty> {
                                     style: TextStyle(fontSize: 15),
                                   ),
                                   onPressed: () async {
-
-                                    if(_partyCode!=""&&_partyName!=""){
+                                    if (_partyCode != "" && _partyName != "") {
                                       bool test = await loginfo(widget.ref);
-                                      if(test){
+                                      if (test) {
+                                        widget.analytics.logEvent(
+                                          name: "party_created",
+                                          parameters: <String, dynamic>{
+                                            'success ': true,
+                                          },
+                                        );
 
                                         Navigator.push(
                                           context,
                                           MaterialPageRoute(
                                               builder: (context) => MyHomePage(
-                                                partyCode: _partyCode,
-                                                partyName: _partyName,
-                                                ref: widget.ref,
-                                              )),
+                                                    partyCode: _partyCode,
+                                                    partyName: _partyName,
+                                                    ref: widget.ref,
+                                                    analytics: widget.analytics,
+                                                  )),
                                         );
                                       }
-
-
-
-                                    }else{
-
-                                      if(_partyName==""||_partyCode==""){
+                                    } else {
+                                      if (_partyName == "" || _partyCode == "") {
                                         ScaffoldMessenger.of(context).showSnackBar(warning("Enter Party Name and Code"));
+                                        widget.analytics.logEvent(
+                                          name: "party_created",
+                                          parameters: <String, dynamic>{
+                                            'success ': false,
+                                          },
+                                        );
                                       }
-
-
-
                                     }
                                   },
                                 ))
                           ],
                         ),
                       ),
-                    ),
+                    ],
                   ),
-                ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
+  }
+
+  @override
+  void initState() {
+    _testSetCurrentScreen();
+    super.initState();
   }
 }
