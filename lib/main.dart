@@ -48,19 +48,25 @@ class MyApp extends StatelessWidget {
       navigatorObservers: [
         FirebaseAnalyticsObserver(analytics: analytics),
       ],
-      home: LoginPage(analytics: analytics,),
+      home: LoginPage(
+        analytics: analytics,
+      ),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-
-  MyHomePage({Key? key, required this.partyCode, required this.ref, required this.partyName,required this.analytics}) : super(key: key);
+  MyHomePage(
+      {Key? key,
+      required this.partyCode,
+      required this.ref,
+      required this.partyName,
+      required this.analytics})
+      : super(key: key);
   DatabaseReference ref;
   final String partyCode;
   final String partyName;
   final FirebaseAnalytics analytics;
-
 
   @override
   _MyHomePageState createState() => _MyHomePageState();
@@ -159,7 +165,8 @@ class _MyHomePageState extends State<MyHomePage> {
       final directory = (await getApplicationDocumentsDirectory()).path;
       File imgFile = new File('$directory/photo.png');
       await imgFile.writeAsBytes(image);
-      await Share.shareFiles([imgFile.path], text: "Show this code to get in to the party");
+      await Share.shareFiles([imgFile.path],
+          text: "Show this code to get in to the party");
     }).catchError((onError) {
       print(onError);
     });
@@ -263,17 +270,15 @@ class _MyHomePageState extends State<MyHomePage> {
                       await controller!.flipCamera();
                       await controller!.resumeCamera();
 
-                      CameraFacing cf= await controller!.getCameraInfo();
-
+                      CameraFacing cf = await controller!.getCameraInfo();
 
                       widget.analytics.logEvent(
                         name: 'camera_flipped',
                         parameters: <String, dynamic>{
-                          'front': cf==CameraFacing.back?true:false,
+                          'front': cf == CameraFacing.back ? true : false,
                         },
                       );
-
-                      },
+                    },
                     icon: Icon(
                       Icons.flip_camera_ios_rounded,
                       size: 30,
@@ -288,29 +293,33 @@ class _MyHomePageState extends State<MyHomePage> {
                       onPressed: () async {
                         flash = (await controller!.getFlashStatus())!;
 
-                        if (await controller!.getCameraInfo() == CameraFacing.back) {
+                        if (await controller!.getCameraInfo() ==
+                            CameraFacing.back) {
                           await controller!.toggleFlash();
                           widget.analytics.logEvent(
                             name: 'flash_toggled',
                             parameters: <String, dynamic>{
                               'flash': flash,
-                              'success':true
+                              'success': true
                             },
                           );
                         } else {
-                          ScaffoldMessenger.of(context).showSnackBar(warning("Flash can only be used with front camera"));
+                          ScaffoldMessenger.of(context).showSnackBar(warning(
+                              "Flash can only be used with front camera"));
                           widget.analytics.logEvent(
                             name: 'flash_toggled',
                             parameters: <String, dynamic>{
                               'flash': flash,
-                              'success':false
+                              'success': false
                             },
-                          );                        }
+                          );
+                        }
 
                         flash = (await controller!.getFlashStatus())!;
                         setState(() {});
                       },
-                      icon: Icon(flash ? Icons.flashlight_on : Icons.flashlight_off)),
+                      icon: Icon(
+                          flash ? Icons.flashlight_on : Icons.flashlight_off)),
                 ),
               ],
             ),
@@ -336,7 +345,14 @@ class _MyHomePageState extends State<MyHomePage> {
             size: 30,
           ),
           onPressed: () {
-            Navigator.push(context, PageTransition(type: PageTransitionType.topToBottom, duration: Duration(milliseconds: 500), child: LoginPage(analytics: widget.analytics,)));
+            Navigator.push(
+                context,
+                PageTransition(
+                    type: PageTransitionType.topToBottom,
+                    duration: Duration(milliseconds: 500),
+                    child: LoginPage(
+                      analytics: widget.analytics,
+                    )));
           },
         ),
         actions: [
@@ -349,7 +365,8 @@ class _MyHomePageState extends State<MyHomePage> {
               },
               child: Text(
                 "Invite",
-                style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                    color: Colors.redAccent, fontWeight: FontWeight.bold),
               ))
         ],
       ),
@@ -372,7 +389,10 @@ class _MyHomePageState extends State<MyHomePage> {
                         Positioned(
                           child: Text(
                             "Invite Card",
-                            style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold,color: Colors.transparent),
+                            style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.transparent),
                           ),
                           top: 5,
                           left: 5,
@@ -381,7 +401,6 @@ class _MyHomePageState extends State<MyHomePage> {
                           child: IconButton(
                             icon: Icon(Icons.info),
                             onPressed: () {
-
                               widget.analytics.logEvent(
                                 name: 'info_card_clicked',
                               );
@@ -393,10 +412,14 @@ class _MyHomePageState extends State<MyHomePage> {
                                     backgroundColor: Colors.redAccent,
                                     elevation: 50,
                                     title: Text("Invite Card"),
-                                    content: Text("Any user who scans this code with the app will be given a invite code"),
+                                    content: Text(
+                                        "Any user who scans this code with the app will be given a invite code"),
                                     actions: [
                                       TextButton(
-                                        child: Text("OK",style: TextStyle(color: Colors.white),),
+                                        child: Text(
+                                          "OK",
+                                          style: TextStyle(color: Colors.white),
+                                        ),
                                         onPressed: () {
                                           Navigator.pop(context);
                                         },
@@ -433,7 +456,8 @@ class _MyHomePageState extends State<MyHomePage> {
                   color: Colors.transparent,
                   child: Text(
                     "Send Invite",
-                    style: TextStyle(color: Colors.transparent, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                        color: Colors.transparent, fontWeight: FontWeight.bold),
                   ),
                   onPressed: () {}),
             ),
@@ -455,10 +479,12 @@ class _MyHomePageState extends State<MyHomePage> {
                       Row(
                         children: [
                           Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 20),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 0, vertical: 20),
                             child: Text(
                               "Party Info",
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30),
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold, fontSize: 30),
                             ),
                           )
                         ],
@@ -468,11 +494,17 @@ class _MyHomePageState extends State<MyHomePage> {
                         children: [
                           Text(
                             "Invitations Sent",
-                            style: TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.bold),
+                            style: TextStyle(
+                                fontSize: 20,
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold),
                           ),
                           Text(
                             party.guestList.length.toString(),
-                            style: TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.bold),
+                            style: TextStyle(
+                                fontSize: 20,
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
@@ -483,11 +515,17 @@ class _MyHomePageState extends State<MyHomePage> {
                           children: [
                             Text(
                               "People Inside",
-                              style: TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.bold),
+                              style: TextStyle(
+                                  fontSize: 20,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold),
                             ),
                             Text(
                               party.guestsInside.length.toString(),
-                              style: TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.bold),
+                              style: TextStyle(
+                                  fontSize: 20,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold),
                             ),
                           ],
                         ),
@@ -509,7 +547,6 @@ class _MyHomePageState extends State<MyHomePage> {
       onWillPop: () async => false,
       child: PageView(
         physics: ClampingScrollPhysics(),
-
         controller: PageController(keepPage: true),
         scrollDirection: Axis.vertical,
         children: [page1(widget.ref), page2()],
@@ -519,7 +556,11 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   void initState() {
-    party = Party(partyCode: widget.partyCode, partyName: widget.partyName, guestsInside: [], guestList: []);
+    party = Party(
+        partyCode: widget.partyCode,
+        partyName: widget.partyName,
+        guestsInside: [],
+        guestList: []);
     updateParty();
     _testSetCurrentScreen();
     super.initState();
