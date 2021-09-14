@@ -1,10 +1,20 @@
+import 'package:bouncer/numberselect.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:proste_bezier_curve/proste_bezier_curve.dart';
 
+import 'login.dart';
+
 class party_settings extends StatefulWidget {
+  final FirebaseAnalytics analytics;
+
+  party_settings(this.analytics);
+
+
+
   @override
   State<party_settings> createState() => _party_settingsState();
 }
@@ -12,6 +22,7 @@ class party_settings extends StatefulWidget {
 class _party_settingsState extends State<party_settings> {
 
   bool _reusedCodes=false;
+  int reuse=1;
 
 
 
@@ -38,7 +49,7 @@ class _party_settingsState extends State<party_settings> {
               ),
               onPressed: () async {
 
-                Navigator.push(context, PageTransition(type: PageTransitionType.fade, child: party_settings()));
+                Navigator.push(context, PageTransition(type: PageTransitionType.fade, child: LoginPage(analytics: widget.analytics,)));
 
 
               }),
@@ -109,41 +120,51 @@ class _party_settingsState extends State<party_settings> {
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Row(
-                children: [
-                  Container(
-                    decoration: BoxDecoration(
-                        color: Colors.redAccent,
-                        borderRadius: BorderRadius.all(Radius.circular(15.0))),
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Icon(
-                        Icons.insert_invitation,
-                        size: 40,
+              child: GestureDetector(
+                onTap: () async {
+                  String test= await Navigator.push(context, PageTransition(type: PageTransitionType.fade, child: NumberSelecter(analytics: widget.analytics,reuse: reuse,)));
+
+                  setState(() {
+                    reuse=int.parse(test);
+                  });
+
+                  },
+                child: Row(
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                          color: Colors.redAccent,
+                          borderRadius: BorderRadius.all(Radius.circular(15.0))),
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Icon(
+                          Icons.scanner,
+                          size: 40,
+                        ),
                       ),
                     ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Scans Per Code",
-                          style: TextStyle(
-                              fontSize: 20, fontWeight: FontWeight.bold),
-                        ),
-                        Text(
-                          "1",
-                          style: TextStyle(
-                              fontSize: 20, fontWeight: FontWeight.bold),
-                        ),
-                      ],
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Scans Per Code",
+                            style: TextStyle(
+                                fontSize: 20, fontWeight: FontWeight.bold),
+                          ),
+                          Text(
+                            "$reuse",
+                            style: TextStyle(
+                                fontSize: 20, fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  Spacer(),
-                  Icon(Icons.chevron_right)
-                ],
+                    Spacer(),
+                    Icon(Icons.chevron_right)
+                  ],
+                ),
               ),
             ),
             Padding(
@@ -157,7 +178,7 @@ class _party_settingsState extends State<party_settings> {
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Icon(
-                        Icons.insert_invitation,
+                        Icons.restart_alt,
                         size: 40,
                       ),
                     ),
@@ -168,7 +189,7 @@ class _party_settingsState extends State<party_settings> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "Allow Resued Codes",
+                          "Allow Reused Codes",
                           style: TextStyle(
                               fontSize: 20, fontWeight: FontWeight.bold),
                         ),

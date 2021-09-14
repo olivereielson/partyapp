@@ -493,7 +493,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
                           IconButton(onPressed: (){
 
-                            Navigator.push(context, PageTransition(type: PageTransitionType.fade, child: party_settings()));
+                            Navigator.push(context, PageTransition(type: PageTransitionType.fade, child: party_settings(widget.analytics)));
 
 
 

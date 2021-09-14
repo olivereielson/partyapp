@@ -43,6 +43,7 @@ dependencies:
   flutter_native_splash:
   proste_bezier_curve:
   firebase_analytics:
+  fluentui_system_icons:
 
 dev_dependencies:
   flutter_test:
