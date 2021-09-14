@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'dart:convert';
 
 import 'package:bouncer/login.dart';
+import 'package:bouncer/partySettings.dart';
 import 'package:bouncer/partyStructure.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_analytics/observer.dart';
@@ -477,7 +478,9 @@ class _MyHomePageState extends State<MyHomePage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
+
                           Padding(
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 0, vertical: 20),
@@ -486,7 +489,15 @@ class _MyHomePageState extends State<MyHomePage> {
                               style: TextStyle(
                                   fontWeight: FontWeight.bold, fontSize: 30),
                             ),
-                          )
+                          ),
+
+                          IconButton(onPressed: (){
+
+                            Navigator.push(context, PageTransition(type: PageTransitionType.fade, child: party_settings()));
+
+
+
+                          }, icon: Icon(Icons.settings,color: Colors.white,))
                         ],
                       ),
                       Row(
