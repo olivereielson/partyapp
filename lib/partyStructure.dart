@@ -51,7 +51,12 @@ class Party {
   String generateId() {
     var rng = new Random();
 
-    String inviteID = DateTime.now().microsecondsSinceEpoch.toString() + rng.nextInt(100).toString();
+
+    String date =DateTime.now().microsecondsSinceEpoch.toString();
+
+    String inviteID = partyName.toUpperCase()+"-"+date.substring(date.length-5)+ "-"+rng.nextInt(100000).toString();
+
+    print(inviteID);
 
     return inviteID;
   }

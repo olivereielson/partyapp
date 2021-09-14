@@ -158,9 +158,15 @@ class _UserpageState extends State<Userpage> {
                                     ),
                                     child: Stack(
                                       children: [
+                                        
+                                        Positioned(
+                                            left:5,
+                                            top: 5,
+                                            child: Image.asset("assets/logo_white.png",width: 60,color: Colors.white.withOpacity(0),)),
+                                        
                                         Positioned(
                                           child: Text(
-                                            "id:" + snapshot.data!.getStringList("wallet")![index],
+                                            snapshot.data!.getStringList("wallet")![index],
                                             style: TextStyle(color: Colors.white.withOpacity(0.6)),
                                           ),
                                           bottom: 5,
