@@ -59,6 +59,39 @@ class _party_settingsState extends State<party_settings> {
 
   }
 
+  void erase_confermation(){
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text("Delete Party?"),
+        content: Text("Are you sure you want to end the party? This action can not be undone."),
+        actions: <Widget>[
+          CupertinoButton(
+              child: Text(
+                "Cancel",
+                style: TextStyle(color: Colors.white),
+              ),
+              onPressed: () {
+                Navigator.pop(context);
+              }),
+          CupertinoButton(
+              child: Text(
+                "Delete",
+                style: TextStyle(color: Colors.redAccent),
+              ),
+              onPressed: () async {
+
+                Navigator.push(context, PageTransition(type: PageTransitionType.fade, child: LoginPage(analytics: widget.analytics,)));
+
+
+              }),
+        ],
+      ),
+    );
+
+  }
+
 
 
   @override
@@ -218,7 +251,7 @@ class _party_settingsState extends State<party_settings> {
             Padding(
               padding: const EdgeInsets.fromLTRB(20,0,20,30),
               child: GestureDetector(
-                onTap: (){                    delete_confermation();
+                onTap: (){                    erase_confermation();
                 },
                 child: Row(
                   children: [

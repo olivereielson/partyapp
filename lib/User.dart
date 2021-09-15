@@ -10,11 +10,10 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Userpage extends StatefulWidget {
-  DatabaseReference ref;
   final FirebaseAnalytics analytics;
 
 
-  Userpage(this.ref,{required this.analytics});
+  Userpage({required this.analytics});
 
   @override
   _UserpageState createState() => _UserpageState();
@@ -225,7 +224,7 @@ class _UserpageState extends State<Userpage> {
                       onPressed: () async {
                         String id = await Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => UserScan(widget.ref,analytics: widget.analytics,)),
+                          MaterialPageRoute(builder: (context) => UserScan(analytics: widget.analytics,)),
                         );
 
                         if (id != "0") {

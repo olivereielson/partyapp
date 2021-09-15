@@ -61,11 +61,9 @@ class MyHomePage extends StatefulWidget {
   MyHomePage(
       {Key? key,
       required this.partyCode,
-      required this.ref,
       required this.partyName,
       required this.analytics})
       : super(key: key);
-  DatabaseReference ref;
   final String partyCode;
   final String partyName;
   final FirebaseAnalytics analytics;
@@ -126,7 +124,11 @@ class _MyHomePageState extends State<MyHomePage> {
 
     String id = generateID();
 
-    party.update({id: '1'});
+   party.set({id: '1'},SetOptions(merge: true));
+
+    party.get().then((DocumentSnapshot documentSnapshot){
+      party.set({"invites": documentSnapshot.get("invites")+1},SetOptions(merge: true));
+    });
 
     screenshotController
         .captureFromWidget(
@@ -182,47 +184,60 @@ class _MyHomePageState extends State<MyHomePage> {
     party.get().then((DocumentSnapshot
     documentSnapshot){
 
-      print(documentSnapshot.get(result.code));
 
-      if (documentSnapshot.get(result.code)==0) {
-        _messageColor = Colors.orangeAccent;
-        _message = "Reused Code";
-        widget.analytics.logEvent(
-          name: 'invite_scanned',
-          parameters: <String, dynamic>{
-            'outcome': 'reused',
-          },
-        );
-      }
 
-      if (documentSnapshot.get(result.code)!=0 &&documentSnapshot.get(result.code)!=null ) {
+      try{
 
-        party.set({result.code: 0});
-
-        setState(() {
-          _messageColor = Colors.green;
-          _message = "Approved";
-          widget.analytics.logEvent(
-            name: 'invite_scanned',
-            parameters: <String, dynamic>{
-              'outcome': 'approved',
-            },
-          );
-        });
-      }
-
-      if (documentSnapshot.get(result.code)==null) {
-        setState(() {
+        if (documentSnapshot.get(result.code)==0) {
           _messageColor = Colors.orangeAccent;
-          _message = "Rejected";
+          _message = "Reused Code";
           widget.analytics.logEvent(
             name: 'invite_scanned',
             parameters: <String, dynamic>{
-              'outcome': 'rejected',
+              'outcome': 'reused',
             },
           );
-        });
+        }
+
+        if (documentSnapshot.get(result.code)!=0 &&documentSnapshot.get(result.code)!=null ) {
+
+          party.set({result.code: 0},SetOptions(merge: true));
+
+          party.get().then((DocumentSnapshot documentSnapshot){
+            party.set({"scans": documentSnapshot.get("scans")+1},SetOptions(merge: true));
+          });
+
+
+          setState(() {
+            _messageColor = Colors.green;
+            _message = "Approved";
+            widget.analytics.logEvent(
+              name: 'invite_scanned',
+              parameters: <String, dynamic>{
+                'outcome': 'approved',
+              },
+            );
+          });
+        }
+
+      } catch(e){
+
+          setState(() {
+            _messageColor = Colors.orangeAccent;
+            _message = "Rejected";
+            widget.analytics.logEvent(
+              name: 'invite_scanned',
+              parameters: <String, dynamic>{
+                'outcome': 'rejected',
+              },
+            );
+          });
+
+
+
       }
+
+
 
     });
 
@@ -464,7 +479,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           child: Center(
                             child: QrImage(
                               size: 200,
-                              data: "${widget.partyName},${widget.partyCode}",
+                              data: "${widget.partyName},${widget.partyCode},1",
                               foregroundColor: Colors.white,
                               version: QrVersions.auto,
                             ),
@@ -560,7 +575,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                         fontWeight: FontWeight.bold),
                                   ),
                                   Text(
-                                    snapshot.data!.get("invites").length.toString(),
+                                    snapshot.data!.get("invites").toString(),
                                     style: TextStyle(
                                         fontSize: 20,
                                         color: Colors.white,
@@ -583,7 +598,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                           fontWeight: FontWeight.bold),
                                     ),
                                     Text(
-                                      snapshot.data!.get("inside").length.toString(),
+                                      snapshot.data!.get("scans").toString(),
                                       style: TextStyle(
                                           fontSize: 20,
                                           color: Colors.white,

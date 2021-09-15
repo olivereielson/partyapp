@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:bouncer/partyStructure.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/cupertino.dart';
@@ -9,9 +11,9 @@ import 'package:flutter/material.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 
 class UserScan extends StatefulWidget {
-  UserScan(this.ref,{required this.analytics});
+  UserScan({required this.analytics});
+
   final FirebaseAnalytics analytics;
-  DatabaseReference ref;
 
   @override
   _UserScanState createState() => _UserScanState();
@@ -21,108 +23,81 @@ class _UserScanState extends State<UserScan> {
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR2');
 
   Barcode? result;
-  Color _mesageColor=Colors.redAccent;
-  String _message="Scan Code";
+  Color _mesageColor = Colors.redAccent;
+  String _message = "Scan Code";
   QRViewController? controller;
   late Party party;
-  bool flash=false;
+  bool flash = false;
 
   bool _scanning = false;
 
-  Future<bool> isValid(String partyName, String partyCode) async {
-    DataSnapshot snapshot = await widget.ref.child(partyName).once();
+  String generateID(String name){
 
-    if (!snapshot.exists) {
-      print("name does not exist");
-      return false;
-    }
-    String p = json.decode(snapshot.value)["partyCode"].toString();
+    var rng = new Random();
 
-    print(partyCode);
-    print(p);
 
-    if (p != partyCode) {
-      print("code does not exist");
+    String date =DateTime.now().microsecondsSinceEpoch.toString();
 
-      return false;
-    }
+    String inviteID = name.toUpperCase()+"-"+date.substring(date.length-5)+ "-"+rng.nextInt(100000).toString();
 
-    return true;
+    print(inviteID);
+
+    return inviteID;
+
+
   }
-
-  Future<void> updateParty(String PartyName) async {
-    await widget.ref.child(PartyName).once().then((DataSnapshot data) {
-      //print(data.value);
-      if (data.value != null) {
-        party.fromjson(json.decode(data.value));
-      }else{
-        print("party instance created in firebase");
-        String str = json.encode(party.toJson());
-        widget.ref.child(PartyName).set(str);
-      }
-    });
-    setState(() {
-
-    });
-  }
-
-  Future<void> uploadParty(String PartyName) async{
-    String str = json.encode(party.toJson());
-    widget.ref.child(PartyName).set(str);
-  }
-
 
   Future<void> scandata(Barcode result) async {
     _scanning = true;
 
     print(result.code);
-    bool temp=false;
-    if(result.code.contains(",")){
-      temp = await isValid(result.code.split(",")[0], result.code.split(",")[1]);
+    bool temp = false;
+    if (result.code.contains(",")) {
+      FirebaseFirestore.instance
+          .collection('party')
+          .doc(result.code.split(",")[0])
+          .get()
+          .then((DocumentSnapshot documentSnapshot) async {
+        if (documentSnapshot.exists &&
+            documentSnapshot.get("password") == result.code.split(",")[1]) {
+
+          setState(() {
+            _mesageColor = Colors.green;
+            _message = "Accepted";
+          });
+          await Future.delayed(Duration(milliseconds: 500));
+
+          String id=generateID(result.code.split(",")[0]);
+
+          FirebaseFirestore.instance.collection('party').doc(result.code.split(",")[0]).set({id: '1'},SetOptions(merge: true));
+          FirebaseFirestore.instance.collection('party').doc(result.code.split(",")[0]).get().then((DocumentSnapshot documentSnapshot){
+            FirebaseFirestore.instance.collection('party').doc(result.code.split(",")[0]).set({"invites": documentSnapshot.get("invites")+1},SetOptions(merge: true));
+          });
+
+
+
+          Navigator.pop(context, id);
+
+        } else {
+          setState(() {
+            _mesageColor = Colors.orangeAccent;
+            _message = "Invalid Code";
+          });
+        }
+      });
     }
 
-    if (temp) {
-
-      setState(() {
-        _mesageColor=Colors.green;
-        _message="Accepted";
-      });
-
-      await updateParty(result.code.split(",")[0]);
-
-      String id=party.generateId();
-
-      party.guestList.add(id);
-
-      await uploadParty(result.code.split(",")[0]);
-
-
-      Navigator.pop(context,id);
-
-
-
-
-    }else{
-
-      setState(() {
-        _mesageColor=Colors.orangeAccent;
-        _message="Invalid Code";
-      });
-
-
-    }
     await Future.delayed(Duration(seconds: 1));
 
     setState(() {
-      _mesageColor=Colors.redAccent;
-      _message="Scan Code";
+      _mesageColor = Colors.redAccent;
+      _message = "Scan Code";
     });
     _scanning = false;
   }
 
   SnackBar warning(String warning) {
     return SnackBar(
-
       content: Text(
         warning,
         style: TextStyle(color: Colors.white),
@@ -170,74 +145,78 @@ class _UserScanState extends State<UserScan> {
                   borderRadius: new BorderRadius.only(
                     bottomLeft: const Radius.circular(40.0),
                     bottomRight: const Radius.circular(40.0),
-                  )),              child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                IconButton(
-                    onPressed: () {
-                      Navigator.pop(context, "0");
-                    },
-                    icon: Icon(
-                      Icons.arrow_back_outlined,
-                      size: 30,
-                    )),
-                Text(
-                  _message,
-                  style: TextStyle(fontSize: 30),
-                ),
-                 SafeArea(
-                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      IconButton(
-                          onPressed: () async {
-                            await controller!.flipCamera();
-                            await controller!.resumeCamera();
-                            CameraFacing cf= await controller!.getCameraInfo();
-                            widget.analytics.logEvent(
-
-                              name: 'camera_flipped',
-                              parameters: <String, dynamic>{
-                                'front': cf==CameraFacing.back?true:false,
-                              },
-                            );
-                          },
-                          icon: Icon(Icons.flip_camera_ios)),
-                      IconButton(
-                          onPressed: () async {
-                            if (await controller!.getCameraInfo() == CameraFacing.back) {
-                              await controller!.toggleFlash();
+                  )),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  IconButton(
+                      onPressed: () {
+                        Navigator.pop(context, "0");
+                      },
+                      icon: Icon(
+                        Icons.arrow_back_outlined,
+                        size: 30,
+                      )),
+                  Text(
+                    _message,
+                    style: TextStyle(fontSize: 30),
+                  ),
+                  SafeArea(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        IconButton(
+                            onPressed: () async {
+                              await controller!.flipCamera();
+                              await controller!.resumeCamera();
+                              CameraFacing cf =
+                                  await controller!.getCameraInfo();
                               widget.analytics.logEvent(
-                                name: 'flash_toggled',
+                                name: 'camera_flipped',
                                 parameters: <String, dynamic>{
-                                  'flash': flash,
-                                  'success':true
+                                  'front':
+                                      cf == CameraFacing.back ? true : false,
                                 },
                               );
-                            } else {
+                            },
+                            icon: Icon(Icons.flip_camera_ios)),
+                        IconButton(
+                            onPressed: () async {
+                              if (await controller!.getCameraInfo() ==
+                                  CameraFacing.back) {
+                                await controller!.toggleFlash();
+                                widget.analytics.logEvent(
+                                  name: 'flash_toggled',
+                                  parameters: <String, dynamic>{
+                                    'flash': flash,
+                                    'success': true
+                                  },
+                                );
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(warning(
+                                    "Flash can only be used with front camera"));
+                                widget.analytics.logEvent(
+                                  name: 'flash_toggled',
+                                  parameters: <String, dynamic>{
+                                    'flash': flash,
+                                    'success': false
+                                  },
+                                );
+                              }
 
-                              ScaffoldMessenger.of(context).showSnackBar(warning("Flash can only be used with front camera"));
-                              widget.analytics.logEvent(
-                                name: 'flash_toggled',
-                                parameters: <String, dynamic>{
-                                  'flash': flash,
-                                  'success':false
-                                },
-                              );                            }
-
-                            flash = (await controller!.getFlashStatus())!;
-                            setState(() {});
-                          },
-                          icon: Icon(flash ? Icons.flashlight_on : Icons.flashlight_off)),
-                    ],
-                ),
-                 ),
-
-              ],
+                              flash = (await controller!.getFlashStatus())!;
+                              setState(() {});
+                            },
+                            icon: Icon(flash
+                                ? Icons.flashlight_on
+                                : Icons.flashlight_off)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
-            ),
-
           ],
         ),
       ),
@@ -251,13 +230,14 @@ class _UserScanState extends State<UserScan> {
     );
   }
 
-
   @override
   void initState() {
-    party = Party(partyCode: "", partyName: "", guestsInside: [], guestList: []);
+    party =
+        Party(partyCode: "", partyName: "", guestsInside: [], guestList: []);
     _testSetCurrentScreen();
     super.initState();
   }
+
   @override
   void reassemble() {
     super.reassemble();
@@ -267,10 +247,10 @@ class _UserScanState extends State<UserScan> {
       controller!.resumeCamera();
     }
   }
+
   @override
   void dispose() {
     controller?.dispose();
     super.dispose();
   }
-
 }

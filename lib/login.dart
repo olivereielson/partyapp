@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:bouncer/User.dart';
 import 'package:bouncer/createparty.dart';
 import 'package:bouncer/partyStructure.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/cupertino.dart';
@@ -16,6 +17,7 @@ import 'main.dart';
 
 class LoginPage extends StatefulWidget {
   LoginPage({required this.analytics});
+
   final FirebaseAnalytics analytics;
 
   @override
@@ -23,7 +25,6 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final fb = FirebaseDatabase.instance;
   String _partyName = "";
   String _partyCode = "";
 
@@ -49,7 +50,8 @@ class _LoginPageState extends State<LoginPage> {
 
     if (!snapshot.exists) {
       print("name does not exist");
-      ScaffoldMessenger.of(context).showSnackBar(warning("Party Name Does not exist"));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(warning("Party Name Does not exist"));
 
       return true;
     }
@@ -71,7 +73,8 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    final ref = fb.reference();
+    CollectionReference parties =
+        FirebaseFirestore.instance.collection('party');
 
     return WillPopScope(
       onWillPop: () async => false,
@@ -82,9 +85,10 @@ class _LoginPageState extends State<LoginPage> {
         physics: ClampingScrollPhysics(),
         pageSnapping: true,
         dragStartBehavior: DragStartBehavior.down,
-
         children: [
-          Userpage(ref,analytics: widget.analytics,),
+          Userpage(
+            analytics: widget.analytics,
+          ),
           Scaffold(
             body: GestureDetector(
               onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
@@ -122,12 +126,16 @@ class _LoginPageState extends State<LoginPage> {
                             mainAxisAlignment: MainAxisAlignment.start,
                             children: [
                               Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 20),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 30, vertical: 20),
                                 child: Row(
                                   children: [
                                     Text(
                                       "Host Party",
-                                      style: TextStyle(color: Colors.white, fontSize: 30, fontWeight: FontWeight.bold),
+                                      style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 30,
+                                          fontWeight: FontWeight.bold),
                                     ),
                                   ],
                                 ),
@@ -138,12 +146,18 @@ class _LoginPageState extends State<LoginPage> {
                                   cursorColor: Colors.redAccent,
                                   decoration: InputDecoration(
                                     focusedBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.all(Radius.circular(25)),
-                                      borderSide: BorderSide(color: Colors.redAccent, width: 2.0, style: BorderStyle.solid),
+                                      borderRadius:
+                                          BorderRadius.all(Radius.circular(25)),
+                                      borderSide: BorderSide(
+                                          color: Colors.redAccent,
+                                          width: 2.0,
+                                          style: BorderStyle.solid),
                                     ),
                                     enabledBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.all(Radius.circular(25)),
-                                      borderSide: BorderSide(color: Colors.redAccent, width: 2.0),
+                                      borderRadius:
+                                          BorderRadius.all(Radius.circular(25)),
+                                      borderSide: BorderSide(
+                                          color: Colors.redAccent, width: 2.0),
                                     ),
                                     hintText: 'Party Name',
                                   ),
@@ -161,12 +175,18 @@ class _LoginPageState extends State<LoginPage> {
                                 child: TextField(
                                   decoration: InputDecoration(
                                     focusedBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.all(Radius.circular(25)),
-                                      borderSide: BorderSide(color: Colors.redAccent, width: 2.0, style: BorderStyle.solid),
+                                      borderRadius:
+                                          BorderRadius.all(Radius.circular(25)),
+                                      borderSide: BorderSide(
+                                          color: Colors.redAccent,
+                                          width: 2.0,
+                                          style: BorderStyle.solid),
                                     ),
                                     enabledBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.all(Radius.circular(25)),
-                                      borderSide: BorderSide(color: Colors.redAccent, width: 2.0),
+                                      borderRadius:
+                                          BorderRadius.all(Radius.circular(25)),
+                                      borderSide: BorderSide(
+                                          color: Colors.redAccent, width: 2.0),
                                     ),
                                     hintText: 'Party Code',
                                   ),
@@ -186,78 +206,100 @@ class _LoginPageState extends State<LoginPage> {
                                     color: Colors.redAccent,
                                     child: Text(
                                       "Host Party",
-                                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                                      style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold),
                                     ),
                                     onPressed: () async {
-                                      if (_partyCode != "" && _partyName != "") {
-                                        bool test = await loginfo(ref);
+                                      if (_partyCode != "" &&
+                                          _partyName != "") {
+                                        FirebaseFirestore.instance
+                                            .collection('party')
+                                            .doc(_partyName)
+                                            .get()
+                                            .then((DocumentSnapshot
+                                                documentSnapshot) {
+                                          if (documentSnapshot.exists) {
+                                            if (documentSnapshot
+                                                    .get("password") ==
+                                                _partyCode) {
+                                              widget.analytics.logEvent(
+                                                name: "party_logg_in",
+                                                parameters: <String, dynamic>{
+                                                  'success ': true,
+                                                },
+                                              );
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        MyHomePage(
+                                                          partyCode: _partyCode,
+                                                          partyName: _partyName,
+                                                          analytics:
+                                                              widget.analytics,
+                                                        )),
+                                              );
+                                            } else {
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(warning(
+                                                      "Wrong Party Code"));
+                                            }
 
-                                        if (!test) {
+                                            widget.analytics.logEvent(
+                                              name: "party_logg_in",
+                                              parameters: <String, dynamic>{
+                                                'success ': false,
+                                              },
+                                            );
+                                          } else {
+                                            widget.analytics.logEvent(
+                                              name: "party_logg_in",
+                                              parameters: <String, dynamic>{
+                                                'success ': false,
+                                              },
+                                            );
 
-                                          widget.analytics.logEvent(name: "party_logg_in",
-                                            parameters: <String, dynamic>{
-                                              'success ': true,
-                                            },
-
-                                          );
-
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                                builder: (context) => MyHomePage(
-                                                      partyCode: _partyCode,
-                                                      ref: ref,
-                                                      partyName: _partyName,
-                                                  analytics: widget.analytics,
-                                                    )),
-                                          );
-                                        }
-                                      } else {
-                                        if (_partyName == "" || _partyCode == "") {
-                                          ScaffoldMessenger.of(context).showSnackBar(warning("Enter Party Name and Code"));
-                                          widget.analytics.logEvent(name: "party_logg_in",
-                                            parameters: <String, dynamic>{
-                                              'success ': false,
-                                            },
-
-                                          );
-                                        }
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(warning(
+                                                    "Wrong Party Name"));
+                                          }
+                                        });
                                       }
-
-                                      /*
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (context) => MyHomePage(partyCode: 'TestCode1234',ref: ref,)),
-                              );
-
-                               */
                                     }),
                               ),
                             ],
                           ),
                         ),
-
                         Positioned(
-
-                          top: MediaQuery.of(context).size.height- 120,
-                          left: (MediaQuery.of(context).size.width-200)/2,
-
-
-
-                          child:  Container(
+                          top: MediaQuery.of(context).size.height - 120,
+                          left: (MediaQuery.of(context).size.width - 200) / 2,
+                          child: Container(
                             width: 200,
                             color: Colors.transparent,
                             child: Center(
                               child: TextButton(
-                                onPressed: () {
-                                  Navigator.push(context, PageTransition(type: PageTransitionType.bottomToTop, duration: Duration(milliseconds: 500), child: CreateParty(ref,analytics: widget.analytics,)));
-                                },
-                                child: Text(
-                                  "Create Party",
-                                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                                )),
+                                  onPressed: () {
+                                    Navigator.push(
+                                        context,
+                                        PageTransition(
+                                            type:
+                                                PageTransitionType.bottomToTop,
+                                            duration:
+                                                Duration(milliseconds: 500),
+                                            child: CreateParty(
+                                              analytics: widget.analytics,
+                                            )));
+                                  },
+                                  child: Text(
+                                    "Create Party",
+                                    style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold),
+                                  )),
                             ),
-                          ),)
+                          ),
+                        )
                       ],
                     ),
                   ),
@@ -283,4 +325,3 @@ class _LoginPageState extends State<LoginPage> {
     super.initState();
   }
 }
-

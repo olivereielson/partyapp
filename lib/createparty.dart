@@ -10,10 +10,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'main.dart';
 
 class CreateParty extends StatefulWidget {
-  DatabaseReference ref;
   final FirebaseAnalytics analytics;
 
-  CreateParty(this.ref, {required this.analytics});
+  CreateParty( {required this.analytics});
 
   @override
   _CreatePartyState createState() => _CreatePartyState();
@@ -71,8 +70,9 @@ class _CreatePartyState extends State<CreateParty> {
           .set({
         'name': _partyName,
         'password': _partyCode,
-        "invites":[],
-        "inside":[]
+        "invites":0,
+        "scans":0,
+
       })
           .then((value) => print("User Added"))
           .catchError((error) => print("Failed to add user: $error"));
@@ -249,7 +249,6 @@ class _CreatePartyState extends State<CreateParty> {
                                                 builder: (context) => MyHomePage(
                                                   partyCode: _partyCode,
                                                   partyName: _partyName,
-                                                  ref: widget.ref,
                                                   analytics: widget.analytics,
                                                 )),
                                           );
