@@ -38,6 +38,7 @@ dependencies:
   card_swiper:
   firebase_database:
   firebase_core:
+  cloud_firestore:
   shared_preferences:
   page_transition:
   flutter_native_splash:

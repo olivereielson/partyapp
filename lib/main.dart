@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'package:bouncer/login.dart';
 import 'package:bouncer/partySettings.dart';
 import 'package:bouncer/partyStructure.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_analytics/observer.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -79,11 +80,9 @@ class _MyHomePageState extends State<MyHomePage> {
   QRViewController? controller;
   bool _scanning = false;
   String _homeID = "";
-  late Party party;
   bool flash = false;
 
   ScreenshotController screenshotController = ScreenshotController();
-
   String _message = "Scan Code";
   Color _messageColor = Colors.redAccent;
 
@@ -104,29 +103,30 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  Future<void> updateParty() async {
-    await widget.ref.child(widget.partyName).once().then((DataSnapshot data) {
-      //print(data.value);
-      if (data.value != null) {
-        party.fromjson(json.decode(data.value));
-      } else {
-        print("party instance created in firebase");
-        String str = json.encode(party.toJson());
-        widget.ref.child(widget.partyName).set(str);
-      }
-    });
-    setState(() {});
+  String generateID(){
+
+    var rng = new Random();
+
+
+    String date =DateTime.now().microsecondsSinceEpoch.toString();
+
+    String inviteID = widget.partyName.toUpperCase()+"-"+date.substring(date.length-5)+ "-"+rng.nextInt(100000).toString();
+
+    print(inviteID);
+
+    return inviteID;
+
+
   }
 
-  Future<void> uploadParty() async {
-    String str = json.encode(party.toJson());
-    widget.ref.child(widget.partyName).set(str);
-  }
 
-  shareCode() async {
-    String id = party.generateId();
-    party.guestList.add(id);
-    await uploadParty();
+
+
+  shareCode(DocumentReference party) async {
+
+    String id = generateID();
+
+    party.update({id: '1'});
 
     screenshotController
         .captureFromWidget(
@@ -175,73 +175,87 @@ class _MyHomePageState extends State<MyHomePage> {
     setState(() {});
   }
 
-  Future<void> scandata(Barcode result) async {
+  Future<void> scandata(Barcode result,DocumentReference party) async {
     _scanning = true;
-    await updateParty();
 
-    print(result.code);
-    print(party.guestList);
 
-    if (party.isInside(result.code)) {
-      _messageColor = Colors.orangeAccent;
-      _message = "Reused Code";
-      widget.analytics.logEvent(
-        name: 'invite_scanned',
-        parameters: <String, dynamic>{
-          'outcome': 'reused',
-        },
-      );
-    }
+    party.get().then((DocumentSnapshot
+    documentSnapshot){
 
-    if (party.onguestList(result.code) && !party.isInside(result.code)) {
-      party.guestsInside.add(result.code);
-      setState(() {
-        _messageColor = Colors.green;
-        _message = "Approved";
-        widget.analytics.logEvent(
-          name: 'invite_scanned',
-          parameters: <String, dynamic>{
-            'outcome': 'approved',
-          },
-        );
-      });
-    }
+      print(documentSnapshot.get(result.code));
 
-    if (!party.onguestList(result.code)) {
-      setState(() {
+      if (documentSnapshot.get(result.code)==0) {
         _messageColor = Colors.orangeAccent;
-        _message = "Rejected";
+        _message = "Reused Code";
         widget.analytics.logEvent(
           name: 'invite_scanned',
           parameters: <String, dynamic>{
-            'outcome': 'rejected',
+            'outcome': 'reused',
           },
         );
-      });
-    }
+      }
+
+      if (documentSnapshot.get(result.code)!=0 &&documentSnapshot.get(result.code)!=null ) {
+
+        party.set({result.code: 0});
+
+        setState(() {
+          _messageColor = Colors.green;
+          _message = "Approved";
+          widget.analytics.logEvent(
+            name: 'invite_scanned',
+            parameters: <String, dynamic>{
+              'outcome': 'approved',
+            },
+          );
+        });
+      }
+
+      if (documentSnapshot.get(result.code)==null) {
+        setState(() {
+          _messageColor = Colors.orangeAccent;
+          _message = "Rejected";
+          widget.analytics.logEvent(
+            name: 'invite_scanned',
+            parameters: <String, dynamic>{
+              'outcome': 'rejected',
+            },
+          );
+        });
+      }
+
+    });
+
+
+
+
+
+
+
 
     await Future.delayed(Duration(seconds: 1));
     setState(() {
       _message = "Scan Code";
       _messageColor = Colors.redAccent;
     });
-    await uploadParty();
     _scanning = false;
   }
 
-  void _onQRViewCreated(QRViewController controller) {
+  void _onQRViewCreated(QRViewController controller,DocumentReference party) {
     this.controller = controller;
     controller.scannedDataStream.listen((scanData) {
       setState(() {
         result = scanData;
       });
       if (!_scanning) {
-        scandata(result!);
+        scandata(result!,party);
       }
     });
   }
 
   Scaffold page2() {
+    DocumentReference party = FirebaseFirestore.instance.collection('party').doc(widget.partyName);
+
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: Stack(
@@ -250,7 +264,14 @@ class _MyHomePageState extends State<MyHomePage> {
             children: [
               QRView(
                 key: qrKey,
-                onQRViewCreated: _onQRViewCreated,
+                onQRViewCreated: (cont){
+
+                 return _onQRViewCreated(cont,party);
+
+                }
+
+
+
               ),
             ],
           ),
@@ -330,7 +351,11 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  Scaffold page1(DatabaseReference ref) {
+  Scaffold page1() {
+
+    DocumentReference party = FirebaseFirestore.instance.collection('party').doc(widget.partyName);
+
+
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
@@ -359,7 +384,7 @@ class _MyHomePageState extends State<MyHomePage> {
         actions: [
           TextButton(
               onPressed: () {
-                shareCode();
+                shareCode(party);
                 widget.analytics.logEvent(
                   name: 'invite_sent',
                 );
@@ -439,7 +464,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           child: Center(
                             child: QrImage(
                               size: 200,
-                              data: "${party.partyName},${party.partyCode}",
+                              data: "${widget.partyName},${widget.partyCode}",
                               foregroundColor: Colors.white,
                               version: QrVersions.auto,
                             ),
@@ -472,78 +497,104 @@ class _MyHomePageState extends State<MyHomePage> {
                     )),
                 width: MediaQuery.of(context).size.width,
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 30),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 0, vertical: 20),
-                            child: Text(
-                              "Party Info",
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 30),
-                            ),
-                          ),
-
-                          IconButton(onPressed: (){
-
-                            Navigator.push(context, PageTransition(type: PageTransitionType.fade, child: party_settings(widget.analytics)));
+                    padding: const EdgeInsets.symmetric(horizontal: 30),
+                    child: StreamBuilder<DocumentSnapshot>(
+                        stream: FirebaseFirestore.instance.collection('party').doc(widget.partyName).snapshots(),
+                        builder: (context,
+                            AsyncSnapshot<
+                                DocumentSnapshot>
+                            snapshot){
 
 
+                          if (snapshot.hasError) {
+                            return Text('Something went wrong');
+                          }
 
-                          }, icon: Icon(Icons.settings,color: Colors.white,))
-                        ],
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            "Invitations Sent",
-                            style: TextStyle(
-                                fontSize: 20,
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold),
-                          ),
-                          Text(
-                            party.guestList.length.toString(),
-                            style: TextStyle(
-                                fontSize: 20,
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold),
-                          ),
-                        ],
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 20, top: 20),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              "People Inside",
-                              style: TextStyle(
-                                  fontSize: 20,
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold),
-                            ),
-                            Text(
-                              party.guestsInside.length.toString(),
-                              style: TextStyle(
-                                  fontSize: 20,
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold),
-                            ),
-                          ],
-                        ),
-                      )
-                    ],
-                  ),
-                ),
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return Text("Loading");
+                          }
+
+
+                          return Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 0, vertical: 20),
+                                    child: Text(
+                                      "Party Info",
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 30),
+                                    ),
+                                  ),
+                                  IconButton(
+                                      onPressed: () {
+                                        Navigator.push(
+                                            context,
+                                            PageTransition(
+                                                type: PageTransitionType.fade,
+                                                child: party_settings(
+                                                    widget.analytics)));
+                                      },
+                                      icon: Icon(
+                                        Icons.settings,
+                                        color: Colors.white,
+                                      ))
+                                ],
+                              ),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    "Invitations Sent",
+                                    style: TextStyle(
+                                        fontSize: 20,
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                  Text(
+                                    snapshot.data!.get("invites").length.toString(),
+                                    style: TextStyle(
+                                        fontSize: 20,
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                ],
+                              ),
+                              Padding(
+                                padding:
+                                    const EdgeInsets.only(bottom: 20, top: 20),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      "People Inside",
+                                      style: TextStyle(
+                                          fontSize: 20,
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                    Text(
+                                      snapshot.data!.get("inside").length.toString(),
+                                      style: TextStyle(
+                                          fontSize: 20,
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                  ],
+                                ),
+                              )
+                            ],
+                          );
+                        })),
               ),
             ),
           ],
@@ -560,19 +611,14 @@ class _MyHomePageState extends State<MyHomePage> {
         physics: ClampingScrollPhysics(),
         controller: PageController(keepPage: true),
         scrollDirection: Axis.vertical,
-        children: [page1(widget.ref), page2()],
+        children: [page1(), page2()],
       ),
     );
   }
 
   @override
   void initState() {
-    party = Party(
-        partyCode: widget.partyCode,
-        partyName: widget.partyName,
-        guestsInside: [],
-        guestList: []);
-    updateParty();
+
     _testSetCurrentScreen();
     super.initState();
   }

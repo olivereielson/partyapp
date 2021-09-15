@@ -6,7 +6,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:proste_bezier_curve/proste_bezier_curve.dart';
-
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'main.dart';
 
 class CreateParty extends StatefulWidget {
@@ -61,6 +61,23 @@ class _CreatePartyState extends State<CreateParty> {
 
   @override
   Widget build(BuildContext context) {
+    CollectionReference parties =
+        FirebaseFirestore.instance.collection('party');
+
+
+    Future<void> addParty() {
+      return parties
+          .doc(_partyName)
+          .set({
+        'name': _partyName,
+        'password': _partyCode,
+        "invites":[],
+        "inside":[]
+      })
+          .then((value) => print("User Added"))
+          .catchError((error) => print("Failed to add user: $error"));
+    }
+
     return WillPopScope(
       onWillPop: () async => false,
       child: Scaffold(
@@ -101,13 +118,18 @@ class _CreatePartyState extends State<CreateParty> {
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: [
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 30),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 30),
                               child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
                                     "Create Party",
-                                    style: TextStyle(color: Colors.white, fontSize: 30, fontWeight: FontWeight.bold),
+                                    style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 30,
+                                        fontWeight: FontWeight.bold),
                                   ),
                                   IconButton(
                                       onPressed: () {
@@ -121,17 +143,24 @@ class _CreatePartyState extends State<CreateParty> {
                               ),
                             ),
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 50),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 30, vertical: 50),
                               child: TextField(
                                 cursorColor: Colors.redAccent,
                                 decoration: InputDecoration(
                                   focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.all(Radius.circular(10)),
-                                    borderSide: BorderSide(color: Colors.redAccent, width: 2.0, style: BorderStyle.solid),
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(10)),
+                                    borderSide: BorderSide(
+                                        color: Colors.redAccent,
+                                        width: 2.0,
+                                        style: BorderStyle.solid),
                                   ),
                                   enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.all(Radius.circular(10)),
-                                    borderSide: BorderSide(color: Colors.redAccent, width: 2.0),
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(10)),
+                                    borderSide: BorderSide(
+                                        color: Colors.redAccent, width: 2.0),
                                   ),
                                   hintText: 'Party Name',
                                 ),
@@ -145,17 +174,24 @@ class _CreatePartyState extends State<CreateParty> {
                               ),
                             ),
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 30, vertical: 10),
                               child: TextField(
                                 cursorColor: Colors.redAccent,
                                 decoration: InputDecoration(
                                   focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.all(Radius.circular(10)),
-                                    borderSide: BorderSide(color: Colors.redAccent, width: 2.0, style: BorderStyle.solid),
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(10)),
+                                    borderSide: BorderSide(
+                                        color: Colors.redAccent,
+                                        width: 2.0,
+                                        style: BorderStyle.solid),
                                   ),
                                   enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.all(Radius.circular(10)),
-                                    borderSide: BorderSide(color: Colors.redAccent, width: 2.0),
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(10)),
+                                    borderSide: BorderSide(
+                                        color: Colors.redAccent, width: 2.0),
                                   ),
                                   hintText: 'Party Password',
                                 ),
@@ -169,22 +205,60 @@ class _CreatePartyState extends State<CreateParty> {
                               ),
                             ),
                             Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 100),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 100),
                                 child: ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    primary: Colors.redAccent,
-                                    onPrimary: Colors.white,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10.0),
+                                    style: ElevatedButton.styleFrom(
+                                      primary: Colors.redAccent,
+                                      onPrimary: Colors.white,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(10.0),
+                                      ),
+                                      elevation: 0,
+                                      minimumSize: Size(
+                                          (MediaQuery.of(context).size.width -
+                                              70),
+                                          60),
                                     ),
-                                    elevation: 0,
-                                    minimumSize: Size((MediaQuery.of(context).size.width - 70), 60),
-                                  ),
-                                  child: Text(
-                                    "Create Party",
-                                    style: TextStyle(fontSize: 15),
-                                  ),
-                                  onPressed: () async {
+                                    child: Text(
+                                      "Create Party",
+                                      style: TextStyle(fontSize: 15),
+                                    ),
+                                    onPressed: () async {
+                                      
+                                      
+                                      FirebaseFirestore.instance
+                                          .collection('party')
+                                          .doc(_partyName)
+                                          .get()
+                                          .then((DocumentSnapshot
+                                              documentSnapshot) {
+                                        if (documentSnapshot.exists) {
+
+                                          ScaffoldMessenger.of(context).showSnackBar(warning("Party Name Already Used"));
+
+
+                                        } else {
+
+                                          addParty();
+
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                                builder: (context) => MyHomePage(
+                                                  partyCode: _partyCode,
+                                                  partyName: _partyName,
+                                                  ref: widget.ref,
+                                                  analytics: widget.analytics,
+                                                )),
+                                          );
+
+                                        }
+                                      });
+
+                                      /*
+
                                     if (_partyCode != "" && _partyName != "") {
                                       bool test = await loginfo(widget.ref);
                                       if (test) {
@@ -217,8 +291,9 @@ class _CreatePartyState extends State<CreateParty> {
                                         );
                                       }
                                     }
-                                  },
-                                ))
+
+                                     */
+                                    })),
                           ],
                         ),
                       ),

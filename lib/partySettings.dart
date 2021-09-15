@@ -63,63 +63,67 @@ class _party_settingsState extends State<party_settings> {
 
   @override
   Widget build(BuildContext context) {
-    double screenWidth = MediaQuery.of(context).size.width;
     return Scaffold(
       body: Container(
         width: MediaQuery.of(context).size.width,
+        height: MediaQuery.of(context).size.height,
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            ClipPath(
-              clipper: ProsteThirdOrderBezierCurve(
-                position: ClipPosition.bottom,
-                list: [
-                  ThirdOrderBezierCurveSection(
-                    p1: Offset(0, 150),
-                    p2: Offset(10, 300),
-                    p3: Offset(MediaQuery.of(context).size.width * 0.7, 100),
-                    p4: Offset(MediaQuery.of(context).size.width, 150),
-                  ),
-                ],
-              ),
-              child: Container(
-                height: 250,
-                width: MediaQuery.of(context).size.width,
-                color: Colors.redAccent,
-                child: SafeArea(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(20.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              "Party Settings",
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 40,
-                                  fontWeight: FontWeight.bold),
-                            ),
-                            IconButton(
-                              icon: Icon(
-                                Icons.close,
-                                size: 30,
+            Container(
+              height: 200,
+              child: ClipPath(
+                clipper: ProsteThirdOrderBezierCurve(
+                  position: ClipPosition.bottom,
+                  list: [
+                    ThirdOrderBezierCurveSection(
+                      p1: Offset(0, 100),
+                      p2: Offset(10, 250),
+                      p3: Offset(MediaQuery.of(context).size.width * 0.7, 100),
+                      p4: Offset(MediaQuery.of(context).size.width, 140),
+                    ),
+                  ],
+                ),
+                child: Container(
+                  height: 250,
+                  width: MediaQuery.of(context).size.width,
+                  color: Colors.redAccent,
+                  child: SafeArea(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(20.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                "Party Settings",
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 40,
+                                    fontWeight: FontWeight.bold),
                               ),
-                              onPressed: () {
-                                Navigator.pop(context);
-                              },
-                            )
-                          ],
+                              IconButton(
+                                icon: Icon(
+                                  Icons.close,
+                                  size: 30,
+                                ),
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                },
+                              )
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+              padding: const EdgeInsets.fromLTRB(20,0,20,0),
               child: GestureDetector(
                 onTap: () async {
                   String test= await Navigator.push(context, PageTransition(type: PageTransitionType.fade, child: NumberSelecter(analytics: widget.analytics,reuse: reuse,)));
@@ -138,7 +142,7 @@ class _party_settingsState extends State<party_settings> {
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: Icon(
-                          Icons.scanner,
+                          Icons.qr_code,
                           size: 40,
                         ),
                       ),
@@ -211,20 +215,89 @@ class _party_settingsState extends State<party_settings> {
                 ],
               ),
             ),
-            Spacer(),
-            SafeArea(
-              child: CupertinoButton(
-                  color: Colors.redAccent,
-                  child: Text(
-                    "Delete Party",
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  onPressed: () {
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20,0,20,30),
+              child: GestureDetector(
+                onTap: (){                    delete_confermation();
+                },
+                child: Row(
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                          color: Colors.redAccent,
+                          borderRadius: BorderRadius.all(Radius.circular(15.0))),
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Icon(
+                          Icons.restart_alt_outlined,
+                          size: 40,
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Reset Invite List",
+                            style: TextStyle(
+                                fontSize: 20, fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Spacer(),
 
-                    delete_confermation();
+                    Icon(Icons.chevron_right)
 
-                  }),
-            )
+                  ],
+                ),
+              ),
+            ),
+
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 20),
+              child: GestureDetector(
+                onTap: (){                    delete_confermation();
+                },
+                child: Row(
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                          color: Colors.redAccent,
+                          borderRadius: BorderRadius.all(Radius.circular(15.0))),
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Icon(
+                          Icons.delete,
+                          size: 40,
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Delete Party",
+                            style: TextStyle(
+                                fontSize: 20, fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Spacer(),
+
+                    Icon(Icons.chevron_right)
+
+                  ],
+                ),
+              ),
+            ),
+
+
           ],
         ),
       ),
