@@ -50,7 +50,7 @@ class MyApp extends StatelessWidget {
       navigatorObservers: [
         FirebaseAnalyticsObserver(analytics: analytics),
       ],
-      home: LoginPage(
+      home: Userpage(
         analytics: analytics,
       ),
     );
@@ -79,6 +79,7 @@ class _MyHomePageState extends State<MyHomePage> {
   bool _scanning = false;
   String _homeID = "";
   bool flash = false;
+  int _reuse=1;
 
   ScreenshotController screenshotController = ScreenshotController();
   String _message = "Scan Code";
@@ -124,7 +125,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
     String id = generateID();
 
-   party.set({id: '1'},SetOptions(merge: true));
+   party.set({id: _reuse},SetOptions(merge: true));
 
     party.get().then((DocumentSnapshot documentSnapshot){
       party.set({"invites": documentSnapshot.get("invites")+1},SetOptions(merge: true));
@@ -201,7 +202,16 @@ class _MyHomePageState extends State<MyHomePage> {
 
         if (documentSnapshot.get(result.code)!=0 &&documentSnapshot.get(result.code)!=null ) {
 
-          party.set({result.code: 0},SetOptions(merge: true));
+
+
+          party.get().then((DocumentSnapshot documentSnapshot){
+            if(documentSnapshot.get(result.code)>1){
+              party.set({result.code: documentSnapshot.get(result.code)-1},SetOptions(merge: true));
+            }else{
+              party.set({result.code: 0},SetOptions(merge: true));
+
+            }
+          });
 
           party.get().then((DocumentSnapshot documentSnapshot){
             party.set({"scans": documentSnapshot.get("scans")+1},SetOptions(merge: true));
@@ -391,7 +401,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 PageTransition(
                     type: PageTransitionType.topToBottom,
                     duration: Duration(milliseconds: 500),
-                    child: LoginPage(
+                    child: Userpage(
                       analytics: widget.analytics,
                     )));
           },
@@ -479,7 +489,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           child: Center(
                             child: QrImage(
                               size: 200,
-                              data: "${widget.partyName},${widget.partyCode},1",
+                              data: "${widget.partyName},${widget.partyCode},$_reuse",
                               foregroundColor: Colors.white,
                               version: QrVersions.auto,
                             ),

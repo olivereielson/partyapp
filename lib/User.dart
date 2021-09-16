@@ -1,9 +1,12 @@
 import 'package:bouncer/UserScan.dart';
+import 'package:bouncer/login.dart';
 import 'package:card_swiper/card_swiper.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/painting.dart';
+import 'package:page_transition/page_transition.dart';
 import 'package:proste_bezier_curve/proste_bezier_curve.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -36,15 +39,15 @@ class _UserpageState extends State<Userpage> {
                 position: ClipPosition.top,
                 list: [
                   ThirdOrderBezierCurveSection(
-                    p1: Offset(0, 250),
-                    p2: Offset(150, 250),
-                    p3: Offset(200, 340),
-                    p4: Offset(0, 150),
+                    p1: Offset(0, 100),
+                    p2: Offset(150, 300),
+                    p3: Offset(200, 200),
+                    p4: Offset(0, 206),
                   ),
                 ],
               ),
               child: Container(
-                height: 400,
+                height: 350,
                 width: MediaQuery.of(context).size.width,
                 color: Colors.redAccent,
               ),
@@ -66,6 +69,35 @@ class _UserpageState extends State<Userpage> {
                             fontSize: 35,
                             fontWeight: FontWeight.bold),
                       ),
+                      Spacer(),
+                      IconButton(onPressed: () async {
+
+                        String id = await Navigator.push(context, PageTransition(type: PageTransitionType.topToBottom, child:  UserScan(
+                          analytics: widget.analytics,
+                        )));
+
+
+
+
+                        if (id != "0") {
+                          SharedPreferences prefs =
+                              await SharedPreferences.getInstance();
+
+                          if (prefs.containsKey("wallet")) {
+                            List<String>? codes = prefs.getStringList("wallet");
+                            codes!.add(id);
+                            prefs.setStringList("wallet", codes);
+                          } else {
+                            prefs.setStringList("wallet", [id]);
+                          }
+
+                          setState(() {});
+                        }
+
+
+
+                      }
+                      , icon: Icon(Icons.qr_code_scanner_outlined,size: 30,))
                     ],
                   ),
                 ),
@@ -164,18 +196,40 @@ class _UserpageState extends State<Userpage> {
                                   child: Container(
                                     height: 100,
                                     width: 200,
+
                                     decoration: BoxDecoration(
                                       borderRadius: BorderRadius.circular(10),
                                       color: Colors.redAccent,
+
+
                                     ),
                                     child: Stack(
                                       children: [
+                                        ClipPath(
+                                          clipper: ProsteThirdOrderBezierCurve(
+                                            position: ClipPosition.top,
+                                            list: [
+                                              ThirdOrderBezierCurveSection(
+                                                p1: Offset(0, 150),
+                                                p2: Offset(150, 260),
+                                                p3: Offset(0, 180),
+                                                p4: Offset(0, 150),
+                                              ),
+                                            ],
+                                          ),
+                                          child: Container(
+                                            decoration: BoxDecoration(
+                                              borderRadius: BorderRadius.circular(10),
+                                              //color: Color.fromRGBO(43, 43, 43, 1),
+                                              //color: Colors.black.withOpacity(0/9)
+                                            ),                                          ),
+                                        ),
                                         Positioned(
                                             left: 5,
-                                            top: 5,
+                                            bottom: 5,
                                             child: Image.asset(
                                               "assets/logo_white.png",
-                                              width: 60,
+                                              width: 30,
                                               color:
                                                   Colors.white.withOpacity(0),
                                             )),
@@ -185,18 +239,26 @@ class _UserpageState extends State<Userpage> {
                                                 "wallet")![index],
                                             style: TextStyle(
                                                 color: Colors.white
-                                                    .withOpacity(0.6)),
+                                                    .withOpacity(0.6),fontSize: 10),
                                           ),
                                           bottom: 5,
                                           right: 5,
                                         ),
                                         Center(
-                                          child: QrImage(
-                                            size: 200,
-                                            data: snapshot.data!.getStringList(
-                                                "wallet")![index],
-                                            foregroundColor: Colors.white,
-                                            version: QrVersions.auto,
+
+                                          child: Column(
+                                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                            children: [
+                                              QrImage(
+                                                size: 170,
+                                                data: snapshot.data!.getStringList(
+                                                    "wallet")![index],
+                                                foregroundColor: Colors.white,
+                                                version: QrVersions.auto,
+                                              ),
+
+                                              Text("Party Labs",style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold),)
+                                            ],
                                           ),
                                         ),
                                       ],
@@ -250,32 +312,20 @@ class _UserpageState extends State<Userpage> {
                       //color: Color.fromRGBO(43, 43, 43, 1),
                       color: Colors.transparent,
                       child: Text(
-                        "Scan New Pass",
+                        "Host Party",
                         style: TextStyle(color: Colors.white),
                       ),
                       onPressed: () async {
-                        String id = await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => UserScan(
-                                    analytics: widget.analytics,
-                                  )),
-                        );
+                        Navigator.push(context, PageTransition(type: PageTransitionType.topToBottom, child:LoginPage(
+                          analytics: widget.analytics,
+                        ),));
 
-                        if (id != "0") {
-                          SharedPreferences prefs =
-                              await SharedPreferences.getInstance();
 
-                          if (prefs.containsKey("wallet")) {
-                            List<String>? codes = prefs.getStringList("wallet");
-                            codes!.add(id);
-                            prefs.setStringList("wallet", codes);
-                          } else {
-                            prefs.setStringList("wallet", [id]);
-                          }
 
-                          setState(() {});
-                        }
+
+
+
+
                       }),
                 )
               ],
