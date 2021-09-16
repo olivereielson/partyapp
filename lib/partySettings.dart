@@ -4,6 +4,7 @@ import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
+import 'package:flutter/rendering.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:proste_bezier_curve/proste_bezier_curve.dart';
 
@@ -25,7 +26,7 @@ class party_settings extends StatefulWidget {
 class _party_settingsState extends State<party_settings> {
 
   bool _reusedCodes=false;
-  int reuse=1;
+  int _reuse=1;
 
 
 
@@ -124,6 +125,105 @@ class _party_settingsState extends State<party_settings> {
 
   }
 
+  Widget reuseWidhet(){
+
+
+  return  Padding(
+      padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 20),
+      child: Row(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+                color: Colors.redAccent,
+                borderRadius: BorderRadius.all(Radius.circular(15.0))),
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Icon(
+                Icons.restart_alt,
+                size: 40,
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Allow Reused Codes",
+                  style: TextStyle(
+                      fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+          ),
+          Spacer(),
+          CupertinoSwitch(
+              activeColor: Colors.redAccent,
+              value: _reusedCodes,
+              onChanged: (val) {
+
+                setState(() {
+                  _reusedCodes=val;
+
+                });
+
+                FirebaseFirestore.instance.collection('party').doc(widget.partyName).set({"reuse": _reusedCodes},SetOptions(merge: true));
+
+
+              })
+        ],
+      ),
+    );
+
+  }
+
+  Future<void> _showPicker(BuildContext ctx) async {
+
+    List<Text> t = [];
+
+
+    for(int x=0; x<100; x++){
+
+      t.add(Text("$x",style: TextStyle(color: Colors.white,fontWeight: FontWeight.bold,fontSize: 30),));
+
+    }
+
+
+    await showCupertinoModalPopup(
+        context: ctx,
+        builder: (_) => Container(
+          width: MediaQuery.of(context).size.width,
+          height: 300,
+          decoration: BoxDecoration(
+            color: Colors.redAccent,
+            borderRadius: BorderRadius.only(
+                topRight: Radius.circular(40.0),
+                bottomRight: Radius.circular(40.0),
+                topLeft: Radius.circular(40.0),
+                bottomLeft: Radius.circular(40.0)),
+          ),
+
+          child: CupertinoPicker(
+            backgroundColor: Colors.transparent,
+            itemExtent: 50,
+            scrollController: FixedExtentScrollController(initialItem: 1),
+            children: t,
+            useMagnifier: true,
+
+            selectionOverlay: Container(
+
+              color: Color.fromRGBO(43, 43, 43, 0.2),
+
+            ),
+            onSelectedItemChanged: (value) {
+              setState(() {
+                _reuse = value;
+              });
+            },
+          ),
+        ));
+  }
 
 
   @override
@@ -191,13 +291,11 @@ class _party_settingsState extends State<party_settings> {
               padding: const EdgeInsets.fromLTRB(20,0,20,0),
               child: GestureDetector(
                 onTap: () async {
-                  String test= await Navigator.push(context, PageTransition(type: PageTransitionType.fade, child: NumberSelecter(analytics: widget.analytics,reuse: reuse,)));
+                 // String test= await Navigator.push(context, PageTransition(type: PageTransitionType.fade, child: NumberSelecter(analytics: widget.analytics,reuse: _reuse,)));
 
-                  setState(() {
-                    reuse=int.parse(test);
-                  });
+                  await _showPicker(context);
 
-                  FirebaseFirestore.instance.collection('party').doc(widget.partyName).set({"numscan": reuse},SetOptions(merge: true));
+                  FirebaseFirestore.instance.collection('party').doc(widget.partyName).set({"numscan": _reuse},SetOptions(merge: true));
 
                   },
                 child: Row(
@@ -225,7 +323,7 @@ class _party_settingsState extends State<party_settings> {
                                 fontSize: 20, fontWeight: FontWeight.bold),
                           ),
                           Text(
-                            "$reuse",
+                            "$_reuse",
                             style: TextStyle(
                                 fontSize: 20, fontWeight: FontWeight.bold),
                           ),
@@ -238,55 +336,9 @@ class _party_settingsState extends State<party_settings> {
                 ),
               ),
             ),
+
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 20),
-              child: Row(
-                children: [
-                  Container(
-                    decoration: BoxDecoration(
-                        color: Colors.redAccent,
-                        borderRadius: BorderRadius.all(Radius.circular(15.0))),
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Icon(
-                        Icons.restart_alt,
-                        size: 40,
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Allow Reused Codes",
-                          style: TextStyle(
-                              fontSize: 20, fontWeight: FontWeight.bold),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Spacer(),
-                  CupertinoSwitch(
-                      activeColor: Colors.redAccent,
-                      value: _reusedCodes,
-                      onChanged: (val) {
-
-                        setState(() {
-                          _reusedCodes=val;
-
-                        });
-
-                        FirebaseFirestore.instance.collection('party').doc(widget.partyName).set({"reuse": _reusedCodes},SetOptions(merge: true));
-
-
-                      })
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20,0,20,30),
+              padding: const EdgeInsets.fromLTRB(20,30,20,30),
               child: GestureDetector(
                 onTap: (){                    erase_confermation();
                 },
