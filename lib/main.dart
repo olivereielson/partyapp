@@ -555,7 +555,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                             PageTransition(
                                                 type: PageTransitionType.fade,
                                                 child: party_settings(
-                                                    widget.analytics)));
+                                                    widget.analytics,partyName: widget.partyName,partyCode: widget.partyCode,)));
                                       },
                                       icon: Icon(
                                         Icons.settings,

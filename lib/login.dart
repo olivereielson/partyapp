@@ -79,7 +79,7 @@ class _LoginPageState extends State<LoginPage> {
     return WillPopScope(
       onWillPop: () async => false,
       child: PageView(
-        scrollDirection: Axis.vertical,
+        scrollDirection: Axis.horizontal,
         allowImplicitScrolling: false,
         padEnds: false,
         physics: ClampingScrollPhysics(),
@@ -90,6 +90,7 @@ class _LoginPageState extends State<LoginPage> {
             analytics: widget.analytics,
           ),
           Scaffold(
+              resizeToAvoidBottomInset:false,
             body: GestureDetector(
               onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
               child: ListView(
@@ -109,7 +110,7 @@ class _LoginPageState extends State<LoginPage> {
                                   p1: Offset(0, 100),
                                   p2: Offset(150, 300),
                                   p3: Offset(200, 200),
-                                  p4: Offset(0, 200),
+                                  p4: Offset(0, 206),
                                 ),
                               ],
                             ),
@@ -307,6 +308,7 @@ class _LoginPageState extends State<LoginPage> {
               ),
             ),
           ),
+
         ],
       ),
     );

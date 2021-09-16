@@ -12,7 +12,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 class Userpage extends StatefulWidget {
   final FirebaseAnalytics analytics;
 
-
   Userpage({required this.analytics});
 
   @override
@@ -26,47 +25,46 @@ class _UserpageState extends State<Userpage> {
 
   Scaffold savedInvites() {
     return Scaffold(
+      resizeToAvoidBottomInset:false,
+
       body: Stack(
         children: [
           Positioned(
-            top:0,
+            bottom: 0,
             child: ClipPath(
               clipper: ProsteThirdOrderBezierCurve(
-                position: ClipPosition.bottom,
+                position: ClipPosition.top,
                 list: [
                   ThirdOrderBezierCurveSection(
-                    p1: Offset(0, 100),
-                    p2: Offset(50, 250),
-                    p3: Offset(MediaQuery.of(context).size.width*0.7, 100),
-                    p4: Offset(MediaQuery.of(context).size.width, 220),
+                    p1: Offset(0, 250),
+                    p2: Offset(150, 250),
+                    p3: Offset(200, 340),
+                    p4: Offset(0, 150),
                   ),
                 ],
               ),
-
               child: Container(
-
-                height: 300,
+                height: 400,
                 width: MediaQuery.of(context).size.width,
                 color: Colors.redAccent,
-
-
-
               ),
             ),
           ),
-
           SafeArea(
             bottom: true,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(30,20,30,0),
+                  padding: const EdgeInsets.fromLTRB(30, 20, 30, 0),
                   child: Row(
                     children: [
                       Text(
                         "Saved Passes",
-                        style: TextStyle(color: Colors.white, fontSize: 35, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 35,
+                            fontWeight: FontWeight.bold),
                       ),
                     ],
                   ),
@@ -76,11 +74,12 @@ class _UserpageState extends State<Userpage> {
                     height: 250,
                     child: FutureBuilder(
                       future: pref(),
-                      builder: (BuildContext context, AsyncSnapshot<SharedPreferences> snapshot) {
-                        if (snapshot.hasData&& snapshot.data!.getStringList("wallet")!=null) {
-
-                          if( snapshot.data!.getStringList("wallet")!.length==0){
-
+                      builder: (BuildContext context,
+                          AsyncSnapshot<SharedPreferences> snapshot) {
+                        if (snapshot.hasData &&
+                            snapshot.data!.getStringList("wallet") != null) {
+                          if (snapshot.data!.getStringList("wallet")!.length ==
+                              0) {
                             return Padding(
                               padding: const EdgeInsets.all(30.0),
                               child: Container(
@@ -93,34 +92,40 @@ class _UserpageState extends State<Userpage> {
                                 child: Stack(
                                   children: [
                                     Center(
-                                        child: Text("No Saved Cards",style: TextStyle(fontWeight: FontWeight.bold,fontSize: 20),)
-                                    ),
+                                        child: Text(
+                                      "No Saved Cards",
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 20),
+                                    )),
                                   ],
                                 ),
                               ),
                             );
-
                           }
-
-
 
                           return Swiper(
                             itemBuilder: (BuildContext context, int index) {
                               return Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 20),
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 20),
                                 child: GestureDetector(
                                   onLongPress: () {
-                                    widget.analytics.logEvent(name: "user_card_long_pressed");
+                                    widget.analytics.logEvent(
+                                        name: "user_card_long_pressed");
                                     showDialog(
                                       context: context,
-                                      builder: (context) => CupertinoAlertDialog(
+                                      builder: (context) =>
+                                          CupertinoAlertDialog(
                                         title: Text("Delete Pass?"),
-                                        content: Text("This action can not be undone"),
+                                        content: Text(
+                                            "This action can not be undone"),
                                         actions: <Widget>[
                                           CupertinoButton(
                                               child: Text(
                                                 "Cancel",
-                                                style: TextStyle(color: Colors.white),
+                                                style: TextStyle(
+                                                    color: Colors.white),
                                               ),
                                               onPressed: () {
                                                 Navigator.pop(context);
@@ -128,19 +133,27 @@ class _UserpageState extends State<Userpage> {
                                           CupertinoButton(
                                               child: Text(
                                                 "Delete",
-                                                style: TextStyle(color: Colors.redAccent),
+                                                style: TextStyle(
+                                                    color: Colors.redAccent),
                                               ),
                                               onPressed: () async {
-                                                SharedPreferences prefs = await SharedPreferences.getInstance();
+                                                SharedPreferences prefs =
+                                                    await SharedPreferences
+                                                        .getInstance();
 
-                                                if (prefs.containsKey("wallet")) {
-                                                  List<String>? codes = prefs.getStringList("wallet");
+                                                if (prefs
+                                                    .containsKey("wallet")) {
+                                                  List<String>? codes = prefs
+                                                      .getStringList("wallet");
                                                   codes!.removeAt(index);
-                                                  prefs.setStringList("wallet", codes);
+                                                  prefs.setStringList(
+                                                      "wallet", codes);
                                                 } else {
-                                                  prefs.setStringList("wallet", []);
+                                                  prefs.setStringList(
+                                                      "wallet", []);
                                                 }
-                                                widget.analytics.logEvent(name: "user_card_deleted");
+                                                widget.analytics.logEvent(
+                                                    name: "user_card_deleted");
                                                 setState(() {});
                                                 Navigator.pop(context);
                                               }),
@@ -157,16 +170,22 @@ class _UserpageState extends State<Userpage> {
                                     ),
                                     child: Stack(
                                       children: [
-                                        
                                         Positioned(
-                                            left:5,
+                                            left: 5,
                                             top: 5,
-                                            child: Image.asset("assets/logo_white.png",width: 60,color: Colors.white.withOpacity(0),)),
-                                        
+                                            child: Image.asset(
+                                              "assets/logo_white.png",
+                                              width: 60,
+                                              color:
+                                                  Colors.white.withOpacity(0),
+                                            )),
                                         Positioned(
                                           child: Text(
-                                            snapshot.data!.getStringList("wallet")![index],
-                                            style: TextStyle(color: Colors.white.withOpacity(0.6)),
+                                            snapshot.data!.getStringList(
+                                                "wallet")![index],
+                                            style: TextStyle(
+                                                color: Colors.white
+                                                    .withOpacity(0.6)),
                                           ),
                                           bottom: 5,
                                           right: 5,
@@ -174,7 +193,8 @@ class _UserpageState extends State<Userpage> {
                                         Center(
                                           child: QrImage(
                                             size: 200,
-                                            data: snapshot.data!.getStringList("wallet")![index],
+                                            data: snapshot.data!.getStringList(
+                                                "wallet")![index],
                                             foregroundColor: Colors.white,
                                             version: QrVersions.auto,
                                           ),
@@ -185,14 +205,21 @@ class _UserpageState extends State<Userpage> {
                                 ),
                               );
                             },
-                            itemCount: snapshot.data!.getStringList("wallet") != null ? snapshot.data!.getStringList("wallet")!.length : 0,
-                            pagination: DotSwiperPaginationBuilder(color: Colors.transparent, activeColor: Colors.transparent),
+                            itemCount: snapshot.data!.getStringList("wallet") !=
+                                    null
+                                ? snapshot.data!.getStringList("wallet")!.length
+                                : 0,
+                            pagination: DotSwiperPaginationBuilder(
+                                color: Colors.transparent,
+                                activeColor: Colors.transparent),
                             loop: false,
-                            control: SwiperControl(color: Colors.transparent, disableColor: Colors.transparent),
+                            control: SwiperControl(
+                                color: Colors.transparent,
+                                disableColor: Colors.transparent),
                           );
                         }
 
-                        return                        Padding(
+                        return Padding(
                           padding: const EdgeInsets.all(30.0),
                           child: Container(
                             height: 100,
@@ -204,8 +231,12 @@ class _UserpageState extends State<Userpage> {
                             child: Stack(
                               children: [
                                 Center(
-                                    child: Text("No Saved Cards",style: TextStyle(fontWeight: FontWeight.bold,fontSize: 20),)
-                                ),
+                                    child: Text(
+                                  "No Saved Cards",
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 20),
+                                )),
                               ],
                             ),
                           ),
@@ -214,9 +245,10 @@ class _UserpageState extends State<Userpage> {
                       },
                     )),
                 Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 30),
+                  padding: const EdgeInsets.only(top: 60,bottom: 10),
                   child: CupertinoButton(
-                      color: Colors.redAccent,
+                      //color: Color.fromRGBO(43, 43, 43, 1),
+                      color: Colors.transparent,
                       child: Text(
                         "Scan New Pass",
                         style: TextStyle(color: Colors.white),
@@ -224,11 +256,15 @@ class _UserpageState extends State<Userpage> {
                       onPressed: () async {
                         String id = await Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => UserScan(analytics: widget.analytics,)),
+                          MaterialPageRoute(
+                              builder: (context) => UserScan(
+                                    analytics: widget.analytics,
+                                  )),
                         );
 
                         if (id != "0") {
-                          SharedPreferences prefs = await SharedPreferences.getInstance();
+                          SharedPreferences prefs =
+                              await SharedPreferences.getInstance();
 
                           if (prefs.containsKey("wallet")) {
                             List<String>? codes = prefs.getStringList("wallet");

@@ -72,6 +72,8 @@ class _CreatePartyState extends State<CreateParty> {
         'password': _partyCode,
         "invites":0,
         "scans":0,
+        "numscan":1,
+        "reuse":false
 
       })
           .then((value) => print("User Added"))

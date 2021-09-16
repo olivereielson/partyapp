@@ -1,4 +1,5 @@
 import 'package:bouncer/numberselect.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -10,8 +11,10 @@ import 'login.dart';
 
 class party_settings extends StatefulWidget {
   final FirebaseAnalytics analytics;
+  String partyName;
+  String partyCode;
 
-  party_settings(this.analytics);
+  party_settings(this.analytics,{required this.partyName,required this.partyCode});
 
 
 
@@ -49,7 +52,18 @@ class _party_settingsState extends State<party_settings> {
               ),
               onPressed: () async {
 
-                Navigator.push(context, PageTransition(type: PageTransitionType.fade, child: LoginPage(analytics: widget.analytics,)));
+
+                FirebaseFirestore.instance.collection('party').doc(widget.partyName)
+                    .delete().then((value){
+
+
+                  Navigator.push(context, PageTransition(type: PageTransitionType.fade, child: LoginPage(analytics: widget.analytics,)));
+
+                });
+
+
+
+
 
 
               }),
@@ -63,9 +77,9 @@ class _party_settingsState extends State<party_settings> {
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text("Delete Party?"),
-        content: Text("Are you sure you want to end the party? This action can not be undone."),
+      builder: (context) => CupertinoAlertDialog(
+        title: Text("Reset Party"),
+        content: Text("Are you sure you want to reset the party?"),
         actions: <Widget>[
           CupertinoButton(
               child: Text(
@@ -77,12 +91,30 @@ class _party_settingsState extends State<party_settings> {
               }),
           CupertinoButton(
               child: Text(
-                "Delete",
+                "Reset",
                 style: TextStyle(color: Colors.redAccent),
               ),
               onPressed: () async {
 
-                Navigator.push(context, PageTransition(type: PageTransitionType.fade, child: LoginPage(analytics: widget.analytics,)));
+                FirebaseFirestore.instance.collection('party')
+                    .doc(widget.partyName)
+                    .set({
+                  'name': widget.partyName,
+                  'password': widget.partyCode,
+                  "invites":0,
+                  "scans":0,
+                  "numscan":1,
+                  "reuse":false
+
+                })
+                    .then((value){
+
+                  Navigator.pop(context);
+
+
+                })
+                    .catchError((error) => print("Failed to add user: $error"));
+
 
 
               }),
@@ -120,7 +152,7 @@ class _party_settingsState extends State<party_settings> {
                 child: Container(
                   height: 250,
                   width: MediaQuery.of(context).size.width,
-                  color: Colors.redAccent,
+                  color: Colors.transparent,
                   child: SafeArea(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -164,6 +196,8 @@ class _party_settingsState extends State<party_settings> {
                   setState(() {
                     reuse=int.parse(test);
                   });
+
+                  FirebaseFirestore.instance.collection('party').doc(widget.partyName).set({"numscan": reuse},SetOptions(merge: true));
 
                   },
                 child: Row(
@@ -244,6 +278,9 @@ class _party_settingsState extends State<party_settings> {
 
                         });
 
+                        FirebaseFirestore.instance.collection('party').doc(widget.partyName).set({"reuse": _reusedCodes},SetOptions(merge: true));
+
+
                       })
                 ],
               ),
@@ -288,7 +325,6 @@ class _party_settingsState extends State<party_settings> {
                 ),
               ),
             ),
-
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 20),
               child: GestureDetector(
@@ -330,6 +366,40 @@ class _party_settingsState extends State<party_settings> {
               ),
             ),
 
+            Spacer(),
+
+            Container(
+              height: 300,
+              child: ClipPath(
+                clipper: ProsteThirdOrderBezierCurve(
+                  position: ClipPosition.top,
+                  list: [
+                    ThirdOrderBezierCurveSection(
+                      p1: Offset(0, 100),
+                      p2: Offset(150, 300),
+                      p3: Offset(200, 100),
+                      p4: Offset(0, 200),
+                    ),
+                  ],
+                ),
+                child: Container(
+                  height: 300,
+                  width: MediaQuery.of(context).size.width,
+                  color: Colors.redAccent,
+
+                  child: SafeArea(child: Column(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(15.0),
+                        child: Text("Credits",style: TextStyle(fontSize: 15,color: Colors.white),),
+                      ),
+                    ],
+                  )),
+
+                ),
+              ),
+            ),
 
           ],
         ),
