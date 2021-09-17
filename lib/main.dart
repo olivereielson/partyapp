@@ -15,6 +15,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:path_provider/path_provider.dart';
@@ -428,25 +429,53 @@ class _MyHomePageState extends State<MyHomePage> {
             Padding(
               padding: const EdgeInsets.only(top: 90),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+
                   Container(
                     width: MediaQuery.of(context).size.width - 50,
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.redAccent.withOpacity(0.5),
+                          spreadRadius: 2,
+                          blurRadius: 7,
+                          offset: Offset(0, 3), // changes position of shadow
+                        ),
+                      ],
                       color: Colors.redAccent,
                     ),
                     child: Stack(
                       children: [
                         Positioned(
+                            top: 15,
+                            left: 15,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(10),
+                                color: Color.fromRGBO(43, 43, 43, 1),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Image.asset(
+                                  "assets/logo_white.png",
+                                  width: 20,
+                                  color: Colors.redAccent.withOpacity(1),
+                                ),
+                              ),
+                            )),
+
+                        Positioned(
+                          bottom: 10,
                           child: Text(
                             "Invite Card",
                             style: TextStyle(
-                                fontSize: 10,
+                                fontSize: 15,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.transparent),
+                                color: Colors.white.withOpacity(0.8)),
                           ),
-                          top: 5,
-                          left: 5,
+                          right: 10,
                         ),
                         Positioned(
                           child: IconButton(
