@@ -26,7 +26,7 @@ class _UserpageState extends State<Userpage> {
   Barcode? result;
   QRViewController? controller;
 
-  Scaffold savedInvites() {
+  Scaffold savedInvites2() {
     return Scaffold(
       resizeToAvoidBottomInset:false,
 
@@ -335,6 +335,284 @@ class _UserpageState extends State<Userpage> {
       ),
     );
   }
+
+  Scaffold savedInvites() {
+    return Scaffold(
+      resizeToAvoidBottomInset:false,
+
+      body: SafeArea(
+        bottom: true,
+        child: Column(
+           children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(30, 20, 30, 0),
+              child: Row(
+                children: [
+                  Text(
+                    "Saved Passes",
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 35,
+                        fontWeight: FontWeight.bold),
+                  ),
+                  Spacer(),
+                  IconButton(onPressed: () async {
+
+                    String id = await Navigator.push(context, PageTransition(type: PageTransitionType.topToBottom, child:  UserScan(
+                      analytics: widget.analytics,
+                    )));
+
+
+
+
+                    if (id != "0") {
+                      SharedPreferences prefs =
+                      await SharedPreferences.getInstance();
+
+                      if (prefs.containsKey("wallet")) {
+                        List<String>? codes = prefs.getStringList("wallet");
+                        codes!.add(id);
+                        prefs.setStringList("wallet", codes);
+                      } else {
+                        prefs.setStringList("wallet", [id]);
+                      }
+
+                      setState(() {});
+                    }
+
+
+
+                  }
+                      , icon: Icon(Icons.qr_code_scanner_outlined,size: 30,))
+                ],
+              ),
+            ),
+
+            Container(
+
+              height: 100,
+
+            ),
+
+            Expanded(
+              child: FutureBuilder(
+                future: pref(),
+                builder: (BuildContext context,
+                    AsyncSnapshot<SharedPreferences> snapshot) {
+                  if (snapshot.hasData &&
+                      snapshot.data!.getStringList("wallet") != null) {
+                    if (snapshot.data!.getStringList("wallet")!.length ==
+                        0) {
+                      return Padding(
+                        padding: const EdgeInsets.all(30.0),
+                        child: Container(
+                          height: 100,
+                          width: 200,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10),
+                            color: Colors.redAccent,
+                          ),
+                          child: Stack(
+                            children: [
+                              Center(
+                                  child: Text(
+                                    "No Saved Cards",
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 20),
+                                  )),
+                            ],
+                          ),
+                        ),
+                      );
+                    }
+
+                    return ListView.builder(
+                      itemBuilder: (BuildContext context, int index) {
+                        return Padding(
+                          padding:
+                          const EdgeInsets.symmetric(horizontal: 20),
+                          child: GestureDetector(
+                            onLongPress: () {
+                              widget.analytics.logEvent(
+                                  name: "user_card_long_pressed");
+                              showDialog(
+                                context: context,
+                                builder: (context) =>
+                                    CupertinoAlertDialog(
+                                      title: Text("Delete Pass?"),
+                                      content: Text(
+                                          "This action can not be undone"),
+                                      actions: <Widget>[
+                                        CupertinoButton(
+                                            child: Text(
+                                              "Cancel",
+                                              style: TextStyle(
+                                                  color: Colors.white),
+                                            ),
+                                            onPressed: () {
+                                              Navigator.pop(context);
+                                            }),
+                                        CupertinoButton(
+                                            child: Text(
+                                              "Delete",
+                                              style: TextStyle(
+                                                  color: Colors.redAccent),
+                                            ),
+                                            onPressed: () async {
+                                              SharedPreferences prefs =
+                                              await SharedPreferences
+                                                  .getInstance();
+
+                                              if (prefs
+                                                  .containsKey("wallet")) {
+                                                List<String>? codes = prefs
+                                                    .getStringList("wallet");
+                                                codes!.removeAt(index);
+                                                prefs.setStringList(
+                                                    "wallet", codes);
+                                              } else {
+                                                prefs.setStringList(
+                                                    "wallet", []);
+                                              }
+                                              widget.analytics.logEvent(
+                                                  name: "user_card_deleted");
+                                              setState(() {});
+                                              Navigator.pop(context);
+                                            }),
+                                      ],
+                                    ),
+                              );
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.all(20.0),
+                              child: Container(
+                                height: 200,
+                                width: 250,
+
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(30),
+                                  color: Colors.redAccent,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.redAccent.withOpacity(0.5),
+                                      spreadRadius: 5,
+                                      blurRadius: 7,
+                                      offset: Offset(0, 3), // changes position of shadow
+                                    ),
+                                  ],
+
+                                ),
+                                child: Stack(
+                                  children: [
+                                    ClipPath(
+                                      clipper: ProsteThirdOrderBezierCurve(
+                                        position: ClipPosition.top,
+                                        list: [
+                                          ThirdOrderBezierCurveSection(
+                                            p1: Offset(0, 150),
+                                            p2: Offset(150, 260),
+                                            p3: Offset(0, 180),
+                                            p4: Offset(0, 150),
+                                          ),
+                                        ],
+                                      ),
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(10),
+                                          //color: Color.fromRGBO(43, 43, 43, 1),
+                                          //color: Colors.black.withOpacity(0/9)
+                                        ),                                          ),
+                                    ),
+                                    Positioned(
+                                        top: 15,
+                                        left: 15,
+                                        child: Container(
+                                            decoration: BoxDecoration(
+                                              borderRadius: BorderRadius.circular(10),
+                                              color: Color.fromRGBO(43, 43, 43, 1),),
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: Image.asset(
+                                              "assets/logo_white.png",
+                                              width: 30,
+                                              color:
+                                              Colors.redAccent.withOpacity(1),
+                                            ),
+                                          ),
+                                        )),
+                                    Positioned(
+                                      child: Text(
+                                        snapshot.data!.getStringList(
+                                            "wallet")![index],
+                                        style: TextStyle(
+                                            color: Colors.white
+                                                .withOpacity(0.6),fontSize: 10),
+                                      ),
+                                      bottom: 5,
+                                      right: 30,
+                                    ),
+                                    Center(
+
+                                      child: QrImage(
+                                        size: 150,
+                                        data: snapshot.data!.getStringList(
+                                            "wallet")![index],
+                                        foregroundColor: Colors.white,
+                                        version: QrVersions.auto,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                      itemCount: snapshot.data!.getStringList("wallet") !=
+                          null
+                          ? snapshot.data!.getStringList("wallet")!.length
+                          : 0,
+                      
+                    );
+                  }
+
+                  return Padding(
+                    padding: const EdgeInsets.all(30.0),
+                    child: Container(
+                      height: 100,
+                      width: 200,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10),
+                        color: Colors.redAccent,
+                      ),
+                      child: Stack(
+                        children: [
+                          Center(
+                              child: Text(
+                                "No Saved Cards",
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 20),
+                              )),
+                        ],
+                      ),
+                    ),
+                  );
+                  ;
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+
+
+
+
 
   Future<SharedPreferences> pref() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
