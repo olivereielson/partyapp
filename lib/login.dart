@@ -93,7 +93,7 @@ class _LoginPageState extends State<LoginPage> {
                         position: ClipPosition.top,
                         list: [
                           ThirdOrderBezierCurveSection(
-                            p1: Offset(0, 100),
+                            p1: Offset(0, 120),
                             p2: Offset(150, 400),
                             p3: Offset(200, 100),
                             p4: Offset(0, 400),
@@ -101,7 +101,7 @@ class _LoginPageState extends State<LoginPage> {
                         ],
                       ),
                       child: Container(
-                        height: 400,
+                        height:400,
                         width: MediaQuery.of(context).size.width,
                         color: Colors.redAccent,
                       ),
@@ -171,7 +171,7 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                         ),
                         Padding(
-                          padding: const EdgeInsets.all(30.0),
+                          padding: const EdgeInsets.symmetric(horizontal: 30),
                           child: TextField(
                             decoration: InputDecoration(
                               focusedBorder: OutlineInputBorder(
@@ -202,7 +202,7 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                         ),
                         Padding(
-                          padding: const EdgeInsets.only(top: 80),
+                          padding: const EdgeInsets.only(top: 50),
                           child: CupertinoButton(
                               color: Colors.redAccent,
                               child: Text(
@@ -269,7 +269,7 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                   Positioned(
-                    top: MediaQuery.of(context).size.height - 200,
+                    top: MediaQuery.of(context).size.height - 150,
                     left: (MediaQuery.of(context).size.width - 200) / 2,
                     child: Container(
                       width: 200,

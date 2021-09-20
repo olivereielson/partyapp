@@ -115,7 +115,7 @@ class _CreatePartyState extends State<CreateParty> {
                         ),
                       ),
                       Padding(
-                        padding: const EdgeInsets.only(top: 90),
+                        padding: const EdgeInsets.only(top: 10),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: [
