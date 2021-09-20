@@ -3,6 +3,7 @@ import 'dart:math';
 import 'dart:typed_data';
 import 'dart:convert';
 
+import 'package:auto_size_text_pk/auto_size_text_pk.dart';
 import 'package:bouncer/login.dart';
 import 'package:bouncer/partySettings.dart';
 import 'package:bouncer/partyStructure.dart';
@@ -80,7 +81,7 @@ class _MyHomePageState extends State<MyHomePage> {
   bool _scanning = false;
   String _homeID = "";
   bool flash = false;
-  int _reuse=1;
+  int _reuse = 1;
 
   ScreenshotController screenshotController = ScreenshotController();
   String _message = "Scan Code";
@@ -103,33 +104,30 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  String generateID(){
-
+  String generateID() {
     var rng = new Random();
 
+    String date = DateTime.now().microsecondsSinceEpoch.toString();
 
-    String date =DateTime.now().microsecondsSinceEpoch.toString();
-
-    String inviteID = widget.partyName.toUpperCase()+"-"+date.substring(date.length-5)+ "-"+rng.nextInt(100000).toString();
+    String inviteID = widget.partyName.toUpperCase() +
+        "-" +
+        date.substring(date.length - 5) +
+        "-" +
+        rng.nextInt(100000).toString();
 
     print(inviteID);
 
     return inviteID;
-
-
   }
 
-
-
-
   shareCode(DocumentReference party) async {
-
     String id = generateID();
 
-   party.set({id: _reuse},SetOptions(merge: true));
+    party.set({id: _reuse}, SetOptions(merge: true));
 
-    party.get().then((DocumentSnapshot documentSnapshot){
-      party.set({"invites": documentSnapshot.get("invites")+1},SetOptions(merge: true));
+    party.get().then((DocumentSnapshot documentSnapshot) {
+      party.set({"invites": documentSnapshot.get("invites") + 1},
+          SetOptions(merge: true));
     });
 
     screenshotController
@@ -179,18 +177,12 @@ class _MyHomePageState extends State<MyHomePage> {
     setState(() {});
   }
 
-  Future<void> scandata(Barcode result,DocumentReference party) async {
+  Future<void> scandata(Barcode result, DocumentReference party) async {
     _scanning = true;
 
-
-    party.get().then((DocumentSnapshot
-    documentSnapshot){
-
-
-
-      try{
-
-        if (documentSnapshot.get(result.code)==0) {
+    party.get().then((DocumentSnapshot documentSnapshot) {
+      try {
+        if (documentSnapshot.get(result.code) == 0) {
           _messageColor = Colors.orangeAccent;
           _message = "Reused Code";
           widget.analytics.logEvent(
@@ -201,23 +193,21 @@ class _MyHomePageState extends State<MyHomePage> {
           );
         }
 
-        if (documentSnapshot.get(result.code)!=0 &&documentSnapshot.get(result.code)!=null ) {
-
-
-
-          party.get().then((DocumentSnapshot documentSnapshot){
-            if(documentSnapshot.get(result.code)>1){
-              party.set({result.code: documentSnapshot.get(result.code)-1},SetOptions(merge: true));
-            }else{
-              party.set({result.code: 0},SetOptions(merge: true));
-
+        if (documentSnapshot.get(result.code) != 0 &&
+            documentSnapshot.get(result.code) != null) {
+          party.get().then((DocumentSnapshot documentSnapshot) {
+            if (documentSnapshot.get(result.code) > 1) {
+              party.set({result.code: documentSnapshot.get(result.code) - 1},
+                  SetOptions(merge: true));
+            } else {
+              party.set({result.code: 0}, SetOptions(merge: true));
             }
           });
 
-          party.get().then((DocumentSnapshot documentSnapshot){
-            party.set({"scans": documentSnapshot.get("scans")+1},SetOptions(merge: true));
+          party.get().then((DocumentSnapshot documentSnapshot) {
+            party.set({"scans": documentSnapshot.get("scans") + 1},
+                SetOptions(merge: true));
           });
-
 
           setState(() {
             _messageColor = Colors.green;
@@ -230,34 +220,19 @@ class _MyHomePageState extends State<MyHomePage> {
             );
           });
         }
-
-      } catch(e){
-
-          setState(() {
-            _messageColor = Colors.orangeAccent;
-            _message = "Rejected";
-            widget.analytics.logEvent(
-              name: 'invite_scanned',
-              parameters: <String, dynamic>{
-                'outcome': 'rejected',
-              },
-            );
-          });
-
-
-
+      } catch (e) {
+        setState(() {
+          _messageColor = Colors.orangeAccent;
+          _message = "Rejected";
+          widget.analytics.logEvent(
+            name: 'invite_scanned',
+            parameters: <String, dynamic>{
+              'outcome': 'rejected',
+            },
+          );
+        });
       }
-
-
-
     });
-
-
-
-
-
-
-
 
     await Future.delayed(Duration(seconds: 1));
     setState(() {
@@ -267,20 +242,21 @@ class _MyHomePageState extends State<MyHomePage> {
     _scanning = false;
   }
 
-  void _onQRViewCreated(QRViewController controller,DocumentReference party) {
+  void _onQRViewCreated(QRViewController controller, DocumentReference party) {
     this.controller = controller;
     controller.scannedDataStream.listen((scanData) {
       setState(() {
         result = scanData;
       });
       if (!_scanning) {
-        scandata(result!,party);
+        scandata(result!, party);
       }
     });
   }
 
   Scaffold page2() {
-    DocumentReference party = FirebaseFirestore.instance.collection('party').doc(widget.partyName);
+    DocumentReference party =
+        FirebaseFirestore.instance.collection('party').doc(widget.partyName);
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -289,87 +265,85 @@ class _MyHomePageState extends State<MyHomePage> {
           Stack(
             children: [
               QRView(
-                key: qrKey,
-                onQRViewCreated: (cont){
-
-                 return _onQRViewCreated(cont,party);
-
-                }
-
-
-
-              ),
+                  key: qrKey,
+                  onQRViewCreated: (cont) {
+                    return _onQRViewCreated(cont, party);
+                  }),
             ],
           ),
-          Container(
-            height: 180,
-            width: MediaQuery.of(context).size.width,
-            decoration: new BoxDecoration(
-                color: _messageColor.withOpacity(0.9),
-                borderRadius: new BorderRadius.only(
-                  bottomLeft: const Radius.circular(40.0),
-                  bottomRight: const Radius.circular(40.0),
-                )),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                IconButton(
-                    onPressed: () async {
-                      await controller!.flipCamera();
-                      await controller!.resumeCamera();
-
-                      CameraFacing cf = await controller!.getCameraInfo();
-
-                      widget.analytics.logEvent(
-                        name: 'camera_flipped',
-                        parameters: <String, dynamic>{
-                          'front': cf == CameraFacing.back ? true : false,
-                        },
-                      );
-                    },
-                    icon: Icon(
-                      Icons.flip_camera_ios_rounded,
-                      size: 30,
-                      color: Colors.white,
-                    )),
-                Text(
-                  _message,
-                  style: TextStyle(fontSize: 30),
-                ),
-                SafeArea(
-                  child: IconButton(
+          Positioned(
+            bottom: 0,
+            child: Container(
+              height: 180,
+              width: MediaQuery.of(context).size.width,
+              decoration: new BoxDecoration(
+                  color: _messageColor.withOpacity(0.9),
+                  borderRadius: new BorderRadius.only(
+                    topLeft: const Radius.circular(40.0),
+                    topRight: const Radius.circular(40.0),
+                  )),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  IconButton(
                       onPressed: () async {
-                        flash = (await controller!.getFlashStatus())!;
+                        await controller!.flipCamera();
+                        await controller!.resumeCamera();
 
-                        if (await controller!.getCameraInfo() ==
-                            CameraFacing.back) {
-                          await controller!.toggleFlash();
-                          widget.analytics.logEvent(
-                            name: 'flash_toggled',
-                            parameters: <String, dynamic>{
-                              'flash': flash,
-                              'success': true
-                            },
-                          );
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(warning(
-                              "Flash can only be used with front camera"));
-                          widget.analytics.logEvent(
-                            name: 'flash_toggled',
-                            parameters: <String, dynamic>{
-                              'flash': flash,
-                              'success': false
-                            },
-                          );
-                        }
+                        CameraFacing cf = await controller!.getCameraInfo();
 
-                        flash = (await controller!.getFlashStatus())!;
-                        setState(() {});
+                        widget.analytics.logEvent(
+                          name: 'camera_flipped',
+                          parameters: <String, dynamic>{
+                            'front': cf == CameraFacing.back ? true : false,
+                          },
+                        );
                       },
                       icon: Icon(
-                          flash ? Icons.flashlight_on : Icons.flashlight_off)),
-                ),
-              ],
+                        Icons.flip_camera_ios_rounded,
+                        size: 30,
+                        color: Colors.white,
+                      )),
+                  Text(
+                    _message,
+                    style: TextStyle(fontSize: 30),
+                  ),
+                  SafeArea(
+                    child: IconButton(
+                        onPressed: () async {
+                          flash = (await controller!.getFlashStatus())!;
+
+                          if (await controller!.getCameraInfo() ==
+                              CameraFacing.back) {
+                            await controller!.toggleFlash();
+                            widget.analytics.logEvent(
+                              name: 'flash_toggled',
+                              parameters: <String, dynamic>{
+                                'flash': flash,
+                                'success': true
+                              },
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(warning(
+                                "Flash can only be used with front camera"));
+                            widget.analytics.logEvent(
+                              name: 'flash_toggled',
+                              parameters: <String, dynamic>{
+                                'flash': flash,
+                                'success': false
+                              },
+                            );
+                          }
+
+                          flash = (await controller!.getFlashStatus())!;
+                          setState(() {});
+                        },
+                        icon: Icon(flash
+                            ? Icons.flashlight_on
+                            : Icons.flashlight_off)),
+                  ),
+                ],
+              ),
             ),
           ),
         ],
@@ -378,16 +352,16 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Scaffold page1() {
-
-    DocumentReference party = FirebaseFirestore.instance.collection('party').doc(widget.partyName);
-
+    DocumentReference party =
+        FirebaseFirestore.instance.collection('party').doc(widget.partyName);
 
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.transparent,
-        title: Text(
+        title: AutoSizeText(
           widget.partyName,
+          maxLines: 1,
           style: TextStyle(fontSize: 25),
         ),
         leadingWidth: 80,
@@ -418,7 +392,7 @@ class _MyHomePageState extends State<MyHomePage> {
               child: Text(
                 "Invite",
                 style: TextStyle(
-                    color: Colors.redAccent, fontWeight: FontWeight.bold),
+                    color: Colors.redAccent, fontWeight: FontWeight.bold,fontSize: 15),
               ))
         ],
       ),
@@ -431,20 +405,21 @@ class _MyHomePageState extends State<MyHomePage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-
                   Container(
                     width: MediaQuery.of(context).size.width - 50,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: Colors.redAccent, width: 3),
+
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.redAccent.withOpacity(0.5),
+                          color: Colors.redAccent.withOpacity(00),
                           spreadRadius: 2,
                           blurRadius: 7,
                           offset: Offset(0, 3), // changes position of shadow
                         ),
                       ],
-                      color: Colors.redAccent,
+                      // color: Colors.redAccent,
                     ),
                     child: Stack(
                       children: [
@@ -465,7 +440,6 @@ class _MyHomePageState extends State<MyHomePage> {
                                 ),
                               ),
                             )),
-
                         Positioned(
                           bottom: 10,
                           child: Text(
@@ -518,7 +492,8 @@ class _MyHomePageState extends State<MyHomePage> {
                           child: Center(
                             child: QrImage(
                               size: 200,
-                              data: "${widget.partyName},${widget.partyCode},$_reuse",
+                              data:
+                                  "${widget.partyName},${widget.partyCode},$_reuse",
                               foregroundColor: Colors.white,
                               version: QrVersions.auto,
                             ),
@@ -544,30 +519,35 @@ class _MyHomePageState extends State<MyHomePage> {
             Expanded(
               child: Container(
                 decoration: new BoxDecoration(
-                    color: Colors.redAccent,
+                    color: Colors.grey.withOpacity(0.1),
+                    border: Border.all(
+                      color: Colors.transparent,
+                      width: 5,
+                    ),
                     borderRadius: new BorderRadius.only(
                       topLeft: const Radius.circular(40.0),
                       topRight: const Radius.circular(40.0),
+                     // bottomRight: const Radius.circular(40.0),
+                      //bottomLeft: const Radius.circular(40.0),
                     )),
                 width: MediaQuery.of(context).size.width,
                 child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 30),
                     child: StreamBuilder<DocumentSnapshot>(
-                        stream: FirebaseFirestore.instance.collection('party').doc(widget.partyName).snapshots(),
+                        stream: FirebaseFirestore.instance
+                            .collection('party')
+                            .doc(widget.partyName)
+                            .snapshots(),
                         builder: (context,
-                            AsyncSnapshot<
-                                DocumentSnapshot>
-                            snapshot){
-
-
+                            AsyncSnapshot<DocumentSnapshot> snapshot) {
                           if (snapshot.hasError) {
                             return Text('Something went wrong');
                           }
 
-                          if (snapshot.connectionState == ConnectionState.waiting) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
                             return Text("Loading");
                           }
-
 
                           return Column(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -588,13 +568,22 @@ class _MyHomePageState extends State<MyHomePage> {
                                     ),
                                   ),
                                   IconButton(
-                                      onPressed: () {
-                                        Navigator.push(
+                                      onPressed: () async {
+                                        _reuse= await Navigator.push(
                                             context,
                                             PageTransition(
                                                 type: PageTransitionType.fade,
                                                 child: party_settings(
-                                                    widget.analytics,partyName: widget.partyName,partyCode: widget.partyCode,)));
+                                                  widget.analytics,
+                                                  partyName: widget.partyName,
+                                                  partyCode: widget.partyCode,
+                                                  reuse: _reuse,
+                                                )));
+
+                                        setState(() {
+
+                                        });
+
                                       },
                                       icon: Icon(
                                         Icons.settings,
@@ -645,7 +634,29 @@ class _MyHomePageState extends State<MyHomePage> {
                                     ),
                                   ],
                                 ),
-                              )
+                              ),
+                              Row(
+                                mainAxisAlignment:
+                                MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    "Scans Per Invite",
+                                    style: TextStyle(
+                                        fontSize: 20,
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                  Text(
+                                    _reuse.toString(),
+                                    style: TextStyle(
+                                        fontSize: 20,
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                ],
+                              ),
+
+
                             ],
                           );
                         })),
@@ -672,7 +683,6 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   void initState() {
-
     _testSetCurrentScreen();
     super.initState();
   }

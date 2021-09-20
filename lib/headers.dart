@@ -42,10 +42,13 @@ class MyDynamicHeader extends SliverPersistentHeaderDelegate {
 
       return Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.only(bottomLeft: Radius.circular(20.0),bottomRight: Radius.circular(20.0)),
-          color: Colors.redAccent,
+          borderRadius: BorderRadius.only(bottomLeft: Radius.circular(20.0),bottomRight: Radius.circular(20.0),topLeft: Radius.circular(40.0),topRight: Radius.circular(40.0)),
+          color: Color.fromRGBO(48, 48, 48, 1),
+          border: Border.all(color: Colors.transparent,width: 4),
+
         ),
         child: SafeArea(
+          bottom: false,
           child: Stack(
             children: [
               Positioned(

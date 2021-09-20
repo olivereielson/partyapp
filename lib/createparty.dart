@@ -165,10 +165,16 @@ class _CreatePartyState extends State<CreateParty> {
                                         color: Colors.redAccent, width: 2.0),
                                   ),
                                   hintText: 'Party Name',
+
+                                  counter: Text("${_partyName.length}/20")
+
                                 ),
+                                maxLength: 20,
                                 toolbarOptions: ToolbarOptions(),
                                 onChanged: (String name) {
-                                  _partyName = name;
+                                  setState(() {
+                                    _partyName = name;
+                                  });
                                 },
                                 onSubmitted: (String name) {
                                   _partyName = name;

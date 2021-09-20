@@ -14,8 +14,9 @@ class party_settings extends StatefulWidget {
   final FirebaseAnalytics analytics;
   String partyName;
   String partyCode;
+  int reuse;
 
-  party_settings(this.analytics,{required this.partyName,required this.partyCode});
+  party_settings(this.analytics,{required this.partyName,required this.partyCode,required this.reuse});
 
 
 
@@ -26,7 +27,6 @@ class party_settings extends StatefulWidget {
 class _party_settingsState extends State<party_settings> {
 
   bool _reusedCodes=false;
-  int _reuse=1;
 
 
 
@@ -183,7 +183,7 @@ class _party_settingsState extends State<party_settings> {
     List<Text> t = [];
 
 
-    for(int x=0; x<100; x++){
+    for(int x=1; x<100; x++){
 
       t.add(Text("$x",style: TextStyle(color: Colors.white,fontWeight: FontWeight.bold,fontSize: 30),));
 
@@ -195,6 +195,7 @@ class _party_settingsState extends State<party_settings> {
         builder: (_) => Container(
           width: MediaQuery.of(context).size.width,
           height: 300,
+
           decoration: BoxDecoration(
             color: Colors.redAccent,
             borderRadius: BorderRadius.only(
@@ -207,8 +208,9 @@ class _party_settingsState extends State<party_settings> {
           child: CupertinoPicker(
             backgroundColor: Colors.transparent,
             itemExtent: 50,
-            scrollController: FixedExtentScrollController(initialItem: 1),
+            scrollController: FixedExtentScrollController(initialItem:  widget.reuse-1 ),
             children: t,
+
             useMagnifier: true,
 
             selectionOverlay: Container(
@@ -218,7 +220,7 @@ class _party_settingsState extends State<party_settings> {
             ),
             onSelectedItemChanged: (value) {
               setState(() {
-                _reuse = value;
+                widget.reuse = value;
               });
             },
           ),
@@ -275,7 +277,7 @@ class _party_settingsState extends State<party_settings> {
                                   size: 30,
                                 ),
                                 onPressed: () {
-                                  Navigator.pop(context);
+                                  Navigator.pop(context, widget.reuse );
                                 },
                               )
                             ],
@@ -295,7 +297,7 @@ class _party_settingsState extends State<party_settings> {
 
                   await _showPicker(context);
 
-                  FirebaseFirestore.instance.collection('party').doc(widget.partyName).set({"numscan": _reuse},SetOptions(merge: true));
+                  FirebaseFirestore.instance.collection('party').doc(widget.partyName).set({"numscan":  widget.reuse },SetOptions(merge: true));
 
                   },
                 child: Row(
@@ -323,7 +325,7 @@ class _party_settingsState extends State<party_settings> {
                                 fontSize: 20, fontWeight: FontWeight.bold),
                           ),
                           Text(
-                            "$_reuse",
+                            "${widget.reuse}",
                             style: TextStyle(
                                 fontSize: 20, fontWeight: FontWeight.bold),
                           ),
