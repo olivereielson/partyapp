@@ -265,17 +265,8 @@ class _LoginPageState extends State<LoginPage> {
                                 }
                               }),
                         ),
-                      ],
-                    ),
-                  ),
-                  Positioned(
-                    top: MediaQuery.of(context).size.height - 150,
-                    left: (MediaQuery.of(context).size.width - 200) / 2,
-                    child: Container(
-                      width: 200,
-                      color: Colors.transparent,
-                      child: Center(
-                        child: TextButton(
+                        Spacer(),
+                        TextButton(
                             onPressed: () {
                               Navigator.push(
                                   context,
@@ -291,10 +282,11 @@ class _LoginPageState extends State<LoginPage> {
                               style: TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold),
-                            )),
-                      ),
+                            ))
+                      ],
                     ),
-                  )
+                  ),
+
                 ],
               ),
             ),

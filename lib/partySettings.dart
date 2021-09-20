@@ -238,59 +238,42 @@ class _party_settingsState extends State<party_settings> {
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
             Container(
-              height: 200,
-              child: ClipPath(
-                clipper: ProsteThirdOrderBezierCurve(
-                  position: ClipPosition.bottom,
-                  list: [
-                    ThirdOrderBezierCurveSection(
-                      p1: Offset(0, 100),
-                      p2: Offset(10, 250),
-                      p3: Offset(MediaQuery.of(context).size.width * 0.7, 100),
-                      p4: Offset(MediaQuery.of(context).size.width, 140),
+              width: MediaQuery.of(context).size.width,
+              color: Colors.transparent,
+              child: SafeArea(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "Party Settings",
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 35,
+                                fontWeight: FontWeight.bold),
+                          ),
+                          IconButton(
+                            icon: Icon(
+                              Icons.close,
+                              size: 30,
+                            ),
+                            onPressed: () {
+                              Navigator.pop(context, widget.reuse );
+                            },
+                          )
+                        ],
+                      ),
                     ),
                   ],
-                ),
-                child: Container(
-                  height: 250,
-                  width: MediaQuery.of(context).size.width,
-                  color: Colors.transparent,
-                  child: SafeArea(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.all(20.0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                "Party Settings",
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 40,
-                                    fontWeight: FontWeight.bold),
-                              ),
-                              IconButton(
-                                icon: Icon(
-                                  Icons.close,
-                                  size: 30,
-                                ),
-                                onPressed: () {
-                                  Navigator.pop(context, widget.reuse );
-                                },
-                              )
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
                 ),
               ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(20,0,20,0),
+              padding: const EdgeInsets.fromLTRB(20,20,20,0),
               child: GestureDetector(
                 onTap: () async {
                  // String test= await Navigator.push(context, PageTransition(type: PageTransitionType.fade, child: NumberSelecter(analytics: widget.analytics,reuse: _reuse,)));
