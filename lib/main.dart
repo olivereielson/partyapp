@@ -7,6 +7,7 @@ import 'package:auto_size_text_pk/auto_size_text_pk.dart';
 import 'package:bouncer/login.dart';
 import 'package:bouncer/partySettings.dart';
 import 'package:bouncer/partyStructure.dart';
+import 'package:bouncer/rootScreen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_analytics/observer.dart';
@@ -20,6 +21,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:persistent_bottom_nav_bar/persistent-tab-view.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:screenshot/screenshot.dart';
@@ -27,6 +29,7 @@ import 'package:share/share.dart';
 import 'package:share_files_and_screenshot_widgets_plus/share_files_and_screenshot_widgets_plus.dart';
 
 import 'User.dart';
+import 'hostScan.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -37,12 +40,14 @@ Future<void> main() async {
   runApp(MyApp());
 }
 
+GlobalKey<NavigatorState> mainNavigatorKey = GlobalKey<NavigatorState>();
+
 class MyApp extends StatelessWidget {
   FirebaseAnalytics analytics = FirebaseAnalytics();
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: mainNavigatorKey,
       title: 'Flutter Demo',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
@@ -52,7 +57,7 @@ class MyApp extends StatelessWidget {
       navigatorObservers: [
         FirebaseAnalyticsObserver(analytics: analytics),
       ],
-      home: Userpage(
+      home: rootScreen(
         analytics: analytics,
       ),
     );
@@ -367,18 +372,24 @@ class _MyHomePageState extends State<MyHomePage> {
         leadingWidth: 80,
         leading: IconButton(
           icon: Icon(
-            Icons.home,
+            Icons.qr_code_scanner_outlined,
             size: 30,
           ),
           onPressed: () {
-            Navigator.push(
-                context,
-                PageTransition(
-                    type: PageTransitionType.topToBottom,
-                    duration: Duration(milliseconds: 500),
-                    child: Userpage(
-                      analytics: widget.analytics,
-                    )));
+            pushNewScreen(
+              context,
+              screen: HostScan(
+
+                partyName: widget.partyName,
+                partyCode: widget.partyCode,
+                analytics: widget.analytics,
+
+              ),
+              withNavBar: false,
+              pageTransitionAnimation: PageTransitionAnimation.cupertino,
+
+            );
+
           },
         ),
         actions: [
@@ -396,6 +407,9 @@ class _MyHomePageState extends State<MyHomePage> {
               ))
         ],
       ),
+
+
+
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -670,7 +684,7 @@ class _MyHomePageState extends State<MyHomePage> {
     return WillPopScope(
       onWillPop: () async => false,
       child: PageView(
-        physics: ClampingScrollPhysics(),
+        physics: NeverScrollableScrollPhysics(),
         controller: PageController(keepPage: true),
         scrollDirection: Axis.vertical,
         children: [page1(), page2()],

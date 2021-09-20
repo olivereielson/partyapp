@@ -16,27 +16,23 @@ class party_settings extends StatefulWidget {
   String partyCode;
   int reuse;
 
-  party_settings(this.analytics,{required this.partyName,required this.partyCode,required this.reuse});
-
-
+  party_settings(this.analytics,
+      {required this.partyName, required this.partyCode, required this.reuse});
 
   @override
   State<party_settings> createState() => _party_settingsState();
 }
 
 class _party_settingsState extends State<party_settings> {
+  bool _reusedCodes = false;
 
-  bool _reusedCodes=false;
-
-
-
-  void delete_confermation(){
-
+  void delete_confermation() {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: Text("Delete Party?"),
-        content: Text("Are you sure you want to end the party? This action can not be undone."),
+        content: Text(
+            "Are you sure you want to end the party? This action can not be undone."),
         actions: <Widget>[
           CupertinoButton(
               child: Text(
@@ -52,30 +48,26 @@ class _party_settingsState extends State<party_settings> {
                 style: TextStyle(color: Colors.redAccent),
               ),
               onPressed: () async {
-
-
-                FirebaseFirestore.instance.collection('party').doc(widget.partyName)
-                    .delete().then((value){
-
-
-                  Navigator.push(context, PageTransition(type: PageTransitionType.fade, child: LoginPage(analytics: widget.analytics,)));
-
+                FirebaseFirestore.instance
+                    .collection('party')
+                    .doc(widget.partyName)
+                    .delete()
+                    .then((value) {
+                  Navigator.push(
+                      context,
+                      PageTransition(
+                          type: PageTransitionType.fade,
+                          child: LoginPage(
+                            analytics: widget.analytics,
+                          )));
                 });
-
-
-
-
-
-
               }),
         ],
       ),
     );
-
   }
 
-  void erase_confermation(){
-
+  void erase_confermation() {
     showDialog(
       context: context,
       builder: (context) => CupertinoAlertDialog(
@@ -96,39 +88,27 @@ class _party_settingsState extends State<party_settings> {
                 style: TextStyle(color: Colors.redAccent),
               ),
               onPressed: () async {
-
-                FirebaseFirestore.instance.collection('party')
+                FirebaseFirestore.instance
+                    .collection('party')
                     .doc(widget.partyName)
                     .set({
                   'name': widget.partyName,
                   'password': widget.partyCode,
-                  "invites":0,
-                  "scans":0,
-                  "numscan":1,
-                  "reuse":false
-
-                })
-                    .then((value){
-
+                  "invites": 0,
+                  "scans": 0,
+                  "numscan": 1,
+                  "reuse": false
+                }).then((value) {
                   Navigator.pop(context);
-
-
-                })
-                    .catchError((error) => print("Failed to add user: $error"));
-
-
-
+                }).catchError((error) => print("Failed to add user: $error"));
               }),
         ],
       ),
     );
-
   }
 
-  Widget reuseWidhet(){
-
-
-  return  Padding(
+  Widget reuseWidhet() {
+    return Padding(
       padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 20),
       child: Row(
         children: [
@@ -151,8 +131,7 @@ class _party_settingsState extends State<party_settings> {
               children: [
                 Text(
                   "Allow Reused Codes",
-                  style: TextStyle(
-                      fontSize: 20, fontWeight: FontWeight.bold),
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
               ],
             ),
@@ -162,71 +141,62 @@ class _party_settingsState extends State<party_settings> {
               activeColor: Colors.redAccent,
               value: _reusedCodes,
               onChanged: (val) {
-
                 setState(() {
-                  _reusedCodes=val;
-
+                  _reusedCodes = val;
                 });
 
-                FirebaseFirestore.instance.collection('party').doc(widget.partyName).set({"reuse": _reusedCodes},SetOptions(merge: true));
-
-
+                FirebaseFirestore.instance
+                    .collection('party')
+                    .doc(widget.partyName)
+                    .set({"reuse": _reusedCodes}, SetOptions(merge: true));
               })
         ],
       ),
     );
-
   }
 
   Future<void> _showPicker(BuildContext ctx) async {
-
     List<Text> t = [];
 
-
-    for(int x=1; x<100; x++){
-
-      t.add(Text("$x",style: TextStyle(color: Colors.white,fontWeight: FontWeight.bold,fontSize: 30),));
-
+    for (int x = 1; x < 100; x++) {
+      t.add(Text(
+        "$x",
+        style: TextStyle(
+            color: Colors.white, fontWeight: FontWeight.bold, fontSize: 30),
+      ));
     }
-
 
     await showCupertinoModalPopup(
         context: ctx,
         builder: (_) => Container(
-          width: MediaQuery.of(context).size.width,
-          height: 300,
-
-          decoration: BoxDecoration(
-            color: Colors.redAccent,
-            borderRadius: BorderRadius.only(
-                topRight: Radius.circular(40.0),
-                bottomRight: Radius.circular(40.0),
-                topLeft: Radius.circular(40.0),
-                bottomLeft: Radius.circular(40.0)),
-          ),
-
-          child: CupertinoPicker(
-            backgroundColor: Colors.transparent,
-            itemExtent: 50,
-            scrollController: FixedExtentScrollController(initialItem:  widget.reuse-1 ),
-            children: t,
-
-            useMagnifier: true,
-
-            selectionOverlay: Container(
-
-              color: Color.fromRGBO(43, 43, 43, 0.2),
-
-            ),
-            onSelectedItemChanged: (value) {
-              setState(() {
-                widget.reuse = value;
-              });
-            },
-          ),
-        ));
+              width: MediaQuery.of(context).size.width,
+              height: 300,
+              decoration: BoxDecoration(
+                color: Colors.redAccent,
+                borderRadius: BorderRadius.only(
+                    topRight: Radius.circular(40.0),
+                    bottomRight: Radius.circular(40.0),
+                    topLeft: Radius.circular(40.0),
+                    bottomLeft: Radius.circular(40.0)),
+              ),
+              child: CupertinoPicker(
+                backgroundColor: Colors.transparent,
+                itemExtent: 50,
+                scrollController:
+                    FixedExtentScrollController(initialItem: widget.reuse - 1),
+                children: t,
+                useMagnifier: true,
+                selectionOverlay: Container(
+                  color: Color.fromRGBO(43, 43, 43, 0.2),
+                ),
+                onSelectedItemChanged: (value) {
+                  setState(() {
+                    widget.reuse = value;
+                  });
+                },
+              ),
+            ));
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -262,7 +232,7 @@ class _party_settingsState extends State<party_settings> {
                               size: 30,
                             ),
                             onPressed: () {
-                              Navigator.pop(context, widget.reuse );
+                              Navigator.pop(context, widget.reuse);
                             },
                           )
                         ],
@@ -273,22 +243,25 @@ class _party_settingsState extends State<party_settings> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(20,20,20,0),
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
               child: GestureDetector(
                 onTap: () async {
-                 // String test= await Navigator.push(context, PageTransition(type: PageTransitionType.fade, child: NumberSelecter(analytics: widget.analytics,reuse: _reuse,)));
+                  // String test= await Navigator.push(context, PageTransition(type: PageTransitionType.fade, child: NumberSelecter(analytics: widget.analytics,reuse: _reuse,)));
 
                   await _showPicker(context);
 
-                  FirebaseFirestore.instance.collection('party').doc(widget.partyName).set({"numscan":  widget.reuse },SetOptions(merge: true));
-
-                  },
+                  FirebaseFirestore.instance
+                      .collection('party')
+                      .doc(widget.partyName)
+                      .set({"numscan": widget.reuse}, SetOptions(merge: true));
+                },
                 child: Row(
                   children: [
                     Container(
                       decoration: BoxDecoration(
                           color: Colors.redAccent,
-                          borderRadius: BorderRadius.all(Radius.circular(15.0))),
+                          borderRadius:
+                              BorderRadius.all(Radius.circular(15.0))),
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: Icon(
@@ -321,18 +294,19 @@ class _party_settingsState extends State<party_settings> {
                 ),
               ),
             ),
-
             Padding(
-              padding: const EdgeInsets.fromLTRB(20,30,20,30),
+              padding: const EdgeInsets.fromLTRB(20, 30, 20, 30),
               child: GestureDetector(
-                onTap: (){                    erase_confermation();
+                onTap: () {
+                  erase_confermation();
                 },
                 child: Row(
                   children: [
                     Container(
                       decoration: BoxDecoration(
                           color: Colors.redAccent,
-                          borderRadius: BorderRadius.all(Radius.circular(15.0))),
+                          borderRadius:
+                              BorderRadius.all(Radius.circular(15.0))),
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: Icon(
@@ -355,9 +329,7 @@ class _party_settingsState extends State<party_settings> {
                       ),
                     ),
                     Spacer(),
-
                     Icon(Icons.chevron_right)
-
                   ],
                 ),
               ),
@@ -365,14 +337,16 @@ class _party_settingsState extends State<party_settings> {
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 20),
               child: GestureDetector(
-                onTap: (){                    delete_confermation();
+                onTap: () {
+                  delete_confermation();
                 },
                 child: Row(
                   children: [
                     Container(
                       decoration: BoxDecoration(
                           color: Colors.redAccent,
-                          borderRadius: BorderRadius.all(Radius.circular(15.0))),
+                          borderRadius:
+                              BorderRadius.all(Radius.circular(15.0))),
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: Icon(
@@ -395,16 +369,12 @@ class _party_settingsState extends State<party_settings> {
                       ),
                     ),
                     Spacer(),
-
                     Icon(Icons.chevron_right)
-
                   ],
                 ),
               ),
             ),
-
             Spacer(),
-
             Container(
               height: 300,
               child: ClipPath(
@@ -423,21 +393,22 @@ class _party_settingsState extends State<party_settings> {
                   height: 300,
                   width: MediaQuery.of(context).size.width,
                   color: Colors.redAccent,
-
-                  child: SafeArea(child: Column(
+                  child: SafeArea(
+                      child: Column(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       Padding(
                         padding: const EdgeInsets.all(15.0),
-                        child: Text("Credits",style: TextStyle(fontSize: 15,color: Colors.white),),
+                        child: Text(
+                          "Credits",
+                          style: TextStyle(fontSize: 15, color: Colors.white),
+                        ),
                       ),
                     ],
                   )),
-
                 ),
               ),
             ),
-
           ],
         ),
       ),

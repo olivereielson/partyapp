@@ -317,32 +317,7 @@ class _UserpageState extends State<Userpage>
           onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
           child: Scaffold(
               resizeToAvoidBottomInset: false,
-              bottomNavigationBar: BottomNavigationBar(
-                onTap: (val) {
-                  pc.jumpToPage(val);
-                  setState(() {
-                    page = val;
-                  });
-                  //  pc.animateToPage(val, duration: Duration(seconds: 1), curve: Curves.easeIn);
-                },
 
-                items: [
-                  BottomNavigationBarItem(
-                      icon: Icon(CupertinoIcons.ticket), label: "Passes"),
-                  //BottomNavigationBarItem(icon: Icon(CupertinoIcons.search), label: "Search"),
-                  BottomNavigationBarItem(
-                      icon: Icon(CupertinoIcons.profile_circled),
-                      label: "Host Party")
-                ],
-                unselectedItemColor: Colors.grey,
-                //selectedItemColor: page!=1?Colors.redAccent:Color.fromRGBO(43, 43, 43, 1),
-                selectedItemColor: Colors.white,
-                backgroundColor:
-                    page ==1 ? Colors.redAccent : Colors.transparent,
-                elevation: 0,
-                currentIndex: page,
-                type: BottomNavigationBarType.fixed,
-              ),
               body: PageView(
                 scrollDirection: Axis.horizontal,
                 physics: NeverScrollableScrollPhysics(),
