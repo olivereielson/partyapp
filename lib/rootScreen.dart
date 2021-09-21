@@ -85,7 +85,7 @@ class _rootScreenState extends State<rootScreen> {
           decoration: NavBarDecoration(
             borderRadius: BorderRadius.only(topRight: Radius.circular(_controller.index==0?20.0:0),topLeft: Radius.circular(_controller.index==0?20.0:0)),
             colorBehindNavBar: Colors.transparent,
-            adjustScreenBottomPaddingOnCurve: false
+            adjustScreenBottomPaddingOnCurve: true
           ),
           popAllScreensOnTapOfSelectedTab: true,
           popActionScreens: PopActionScreensType.all,
