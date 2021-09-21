@@ -7,6 +7,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:proste_bezier_curve/proste_bezier_curve.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:top_snackbar_flutter/custom_snack_bar.dart';
+import 'package:top_snackbar_flutter/top_snack_bar.dart';
 import 'main.dart';
 
 class CreateParty extends StatefulWidget {
@@ -23,33 +25,7 @@ class _CreatePartyState extends State<CreateParty> {
   String _partyName = "";
   String _partyCode = "";
 
-  SnackBar warning(String warning) {
-    return SnackBar(
-      content: Text(
-        warning,
-        style: TextStyle(color: Colors.white),
-      ),
-      backgroundColor: Color.fromRGBO(43, 43, 43, 1),
-      action: SnackBarAction(
-        label: 'Dismiss',
-        textColor: Colors.white,
-        onPressed: () {
-          // Some code to undo the change.
-        },
-      ),
-    );
-  }
 
-  Future<bool> loginfo(ref) async {
-    DataSnapshot snapshot = await ref.child(_partyName).once();
-
-    if (!snapshot.exists) {
-      return true;
-    }
-    ScaffoldMessenger.of(context).showSnackBar(warning("Name Already Exists"));
-
-    return false;
-  }
 
   Future<void> _testSetCurrentScreen() async {
     await widget.analytics.setCurrentScreen(
@@ -108,9 +84,9 @@ class _CreatePartyState extends State<CreateParty> {
                             ],
                           ),
                           child: Container(
-                            height: 650,
+                            height: 700,
                             width: MediaQuery.of(context).size.width,
-                            color: Colors.redAccent,
+                            color: Colors.grey.withOpacity(0.1),
                           ),
                         ),
                       ),
@@ -145,14 +121,13 @@ class _CreatePartyState extends State<CreateParty> {
                               ),
                             ),
                             Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 30, vertical: 50),
+                              padding: const EdgeInsets.fromLTRB(30,50,30,20),
                               child: TextField(
                                 cursorColor: Colors.redAccent,
                                 decoration: InputDecoration(
                                   focusedBorder: OutlineInputBorder(
                                     borderRadius:
-                                        BorderRadius.all(Radius.circular(10)),
+                                        BorderRadius.all(Radius.circular(25)),
                                     borderSide: BorderSide(
                                         color: Colors.redAccent,
                                         width: 2.0,
@@ -160,7 +135,7 @@ class _CreatePartyState extends State<CreateParty> {
                                   ),
                                   enabledBorder: OutlineInputBorder(
                                     borderRadius:
-                                        BorderRadius.all(Radius.circular(10)),
+                                        BorderRadius.all(Radius.circular(25)),
                                     borderSide: BorderSide(
                                         color: Colors.redAccent, width: 2.0),
                                   ),
@@ -183,13 +158,13 @@ class _CreatePartyState extends State<CreateParty> {
                             ),
                             Padding(
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 30, vertical: 10),
+                                  horizontal: 30, vertical: 0),
                               child: TextField(
                                 cursorColor: Colors.redAccent,
                                 decoration: InputDecoration(
                                   focusedBorder: OutlineInputBorder(
                                     borderRadius:
-                                        BorderRadius.all(Radius.circular(10)),
+                                        BorderRadius.all(Radius.circular(25)),
                                     borderSide: BorderSide(
                                         color: Colors.redAccent,
                                         width: 2.0,
@@ -197,11 +172,11 @@ class _CreatePartyState extends State<CreateParty> {
                                   ),
                                   enabledBorder: OutlineInputBorder(
                                     borderRadius:
-                                        BorderRadius.all(Radius.circular(10)),
+                                        BorderRadius.all(Radius.circular(25)),
                                     borderSide: BorderSide(
                                         color: Colors.redAccent, width: 2.0),
                                   ),
-                                  hintText: 'Party Password',
+                                  hintText: 'Party Code',
                                 ),
                                 toolbarOptions: ToolbarOptions(),
                                 onChanged: (String code) {
@@ -214,42 +189,52 @@ class _CreatePartyState extends State<CreateParty> {
                             ),
                             Padding(
                                 padding:
-                                    const EdgeInsets.symmetric(vertical: 100),
-                                child: ElevatedButton(
-                                    style: ElevatedButton.styleFrom(
-                                      primary: Colors.redAccent,
-                                      onPrimary: Colors.white,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(10.0),
-                                      ),
-                                      elevation: 0,
-                                      minimumSize: Size(
-                                          (MediaQuery.of(context).size.width -
-                                              70),
-                                          60),
-                                    ),
+                                    const EdgeInsets.symmetric(vertical: 100,horizontal:80),
+                                child: CupertinoButton(
+
+                                  color: Colors.redAccent,
                                     child: Text(
                                       "Create Party",
-                                      style: TextStyle(fontSize: 15),
+                                      style: TextStyle(fontSize: 15,color: Colors.white),
                                     ),
                                     onPressed: () async {
-                                      
-                                      
+
+
+                                    if(_partyName.replaceAll(" ", "")==""||_partyCode.replaceAll(" ", "")==""){
+
+                                      showTopSnackBar(
+                                        context,
+                                        CustomSnackBar.error(
+                                          message: _partyName.replaceAll(" ", "")==""?"Create A Party Name":"Create A Party Code",
+                                        ),
+                                      );
+
+
+                                    }else{
+
                                       FirebaseFirestore.instance
                                           .collection('party')
                                           .doc(_partyName)
                                           .get()
                                           .then((DocumentSnapshot
-                                              documentSnapshot) {
+                                      documentSnapshot) {
                                         if (documentSnapshot.exists) {
 
-                                          ScaffoldMessenger.of(context).showSnackBar(warning("Party Name Already Used"));
+                                          showTopSnackBar(
+                                            context,
 
+                                            CustomSnackBar.error(
+                                              message: "Party Name Already Used",
+                                            ),
+                                          );
 
                                         } else {
 
+
+
                                           addParty();
+
+                                          widget.analytics.logEvent(name: "party_created");
 
                                           Navigator.push(
                                             context,
@@ -264,42 +249,10 @@ class _CreatePartyState extends State<CreateParty> {
                                         }
                                       });
 
-                                      /*
 
-                                    if (_partyCode != "" && _partyName != "") {
-                                      bool test = await loginfo(widget.ref);
-                                      if (test) {
-                                        widget.analytics.logEvent(
-                                          name: "party_created",
-                                          parameters: <String, dynamic>{
-                                            'success ': true,
-                                          },
-                                        );
-
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                              builder: (context) => MyHomePage(
-                                                    partyCode: _partyCode,
-                                                    partyName: _partyName,
-                                                    ref: widget.ref,
-                                                    analytics: widget.analytics,
-                                                  )),
-                                        );
-                                      }
-                                    } else {
-                                      if (_partyName == "" || _partyCode == "") {
-                                        ScaffoldMessenger.of(context).showSnackBar(warning("Enter Party Name and Code"));
-                                        widget.analytics.logEvent(
-                                          name: "party_created",
-                                          parameters: <String, dynamic>{
-                                            'success ': false,
-                                          },
-                                        );
-                                      }
                                     }
+                                      
 
-                                     */
                                     })),
                           ],
                         ),

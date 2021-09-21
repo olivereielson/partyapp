@@ -19,7 +19,8 @@ class rootScreen extends StatefulWidget {
 
 class _rootScreenState extends State<rootScreen> {
 
-  PersistentTabController _controller = PersistentTabController(initialIndex: 0);
+  PersistentTabController _controller = PersistentTabController(initialIndex: 0,);
+
 
 
 
@@ -37,16 +38,14 @@ class _rootScreenState extends State<rootScreen> {
         icon: Icon(CupertinoIcons.ticket),
         title: ("Passes"),
         activeColorPrimary: CupertinoColors.white,
-
-        inactiveColorPrimary: Colors.black38,
+          inactiveColorPrimary: CupertinoColors.systemGrey,
 
       ),
       PersistentBottomNavBarItem(
-        icon: Icon(CupertinoIcons.profile_circled,size: 30,),
+        icon: Icon(CupertinoIcons.profile_circled,),
         title: ("Host"),
-        contentPadding: 5,
-        iconSize: 70,
         activeColorPrimary: CupertinoColors.white,
+
         inactiveColorPrimary: CupertinoColors.systemGrey,
 
 
@@ -62,35 +61,47 @@ class _rootScreenState extends State<rootScreen> {
 
 
 
-    return PersistentTabView(
-      context,
-      controller: _controller,
-      screens: _buildScreens(),
-      items: _navBarsItems(),
+    return Scaffold(
+      resizeToAvoidBottomInset: false,
+      body: GestureDetector(
 
-      confineInSafeArea: true,
-      backgroundColor: _controller.index==1?Colors.redAccent:Color.fromRGBO(47, 47, 47, 0), // Default is Colors.white.
-      handleAndroidBackButtonPress: true, // Default is true.
-      resizeToAvoidBottomInset: true, // This needs to be true if you want to move up the screen when keyboard appears. Default is true.
-      stateManagement: true, // Default is true.
+        onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
 
-      hideNavigationBarWhenKeyboardShows: true, // Recommended to set 'resizeToAvoidBottomInset' as true while using this argument. Default is true.
-      decoration: NavBarDecoration(
-        borderRadius: BorderRadius.circular(0.0),
-        colorBehindNavBar: Colors.transparent,
+
+        child: PersistentTabView(
+          context,
+          controller: _controller,
+          screens: _buildScreens(),
+          items: _navBarsItems(),
+
+          confineInSafeArea: true,
+          backgroundColor: Color.fromRGBO(60, 60, 60, 1),
+          //backgroundColor: _controller.index==1?Color.fromRGBO(58, 58, 58, 1):Color.fromRGBO(47, 47, 47, 0), // Default is Colors.white.
+          handleAndroidBackButtonPress: true, // Default is true.
+          resizeToAvoidBottomInset: false, // This needs to be true if you want to move up the screen when keyboard appears. Default is true.
+          stateManagement: true, // Default is true.
+
+          hideNavigationBarWhenKeyboardShows: true, // Recommended to set 'resizeToAvoidBottomInset' as true while using this argument. Default is true.
+          decoration: NavBarDecoration(
+            borderRadius: BorderRadius.only(topRight: Radius.circular(_controller.index==0?20.0:0),topLeft: Radius.circular(_controller.index==0?20.0:0)),
+            colorBehindNavBar: Colors.transparent,
+            adjustScreenBottomPaddingOnCurve: false
+          ),
+          popAllScreensOnTapOfSelectedTab: true,
+          popActionScreens: PopActionScreensType.all,
+          itemAnimationProperties: ItemAnimationProperties( // Navigation Bar's items animation properties.
+            duration: Duration(milliseconds: 200),
+            curve: Curves.ease,
+          ),
+          screenTransitionAnimation: ScreenTransitionAnimation( // Screen transition animation on change of selected tab.
+            animateTabTransition: false,
+            curve: Curves.ease,
+            duration: Duration(milliseconds: 200),
+          ),
+
+          navBarStyle: NavBarStyle.style8, // Choose the nav bar style with this property.
+        ),
       ),
-      popAllScreensOnTapOfSelectedTab: true,
-      popActionScreens: PopActionScreensType.all,
-      itemAnimationProperties: ItemAnimationProperties( // Navigation Bar's items animation properties.
-        duration: Duration(milliseconds: 200),
-        curve: Curves.ease,
-      ),
-      screenTransitionAnimation: ScreenTransitionAnimation( // Screen transition animation on change of selected tab.
-        animateTabTransition: false,
-        curve: Curves.ease,
-        duration: Duration(milliseconds: 200),
-      ),
-      navBarStyle: NavBarStyle.style6, // Choose the nav bar style with this property.
     );
   }
   @override

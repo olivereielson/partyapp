@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
 import 'package:flutter/rendering.dart';
 import 'package:page_transition/page_transition.dart';
+import 'package:persistent_bottom_nav_bar/persistent-tab-view.dart';
 import 'package:proste_bezier_curve/proste_bezier_curve.dart';
 
 import 'login.dart';
@@ -175,9 +176,9 @@ class _party_settingsState extends State<party_settings> {
                 color: Colors.redAccent,
                 borderRadius: BorderRadius.only(
                     topRight: Radius.circular(40.0),
-                    bottomRight: Radius.circular(40.0),
+                    bottomRight: Radius.circular(0),
                     topLeft: Radius.circular(40.0),
-                    bottomLeft: Radius.circular(40.0)),
+                    bottomLeft: Radius.circular(0)),
               ),
               child: CupertinoPicker(
                 backgroundColor: Colors.transparent,
@@ -185,13 +186,14 @@ class _party_settingsState extends State<party_settings> {
                 scrollController:
                     FixedExtentScrollController(initialItem: widget.reuse - 1),
                 children: t,
+                looping: true,
                 useMagnifier: true,
                 selectionOverlay: Container(
                   color: Color.fromRGBO(43, 43, 43, 0.2),
                 ),
                 onSelectedItemChanged: (value) {
                   setState(() {
-                    widget.reuse = value;
+                    widget.reuse = value+1;
                   });
                 },
               ),
@@ -204,214 +206,293 @@ class _party_settingsState extends State<party_settings> {
       body: Container(
         width: MediaQuery.of(context).size.width,
         height: MediaQuery.of(context).size.height,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
+        child: Stack(
           children: [
-            Container(
-              width: MediaQuery.of(context).size.width,
-              color: Colors.transparent,
-              child: SafeArea(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            "Party Settings",
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 35,
-                                fontWeight: FontWeight.bold),
-                          ),
-                          IconButton(
-                            icon: Icon(
-                              Icons.close,
-                              size: 30,
-                            ),
-                            onPressed: () {
-                              Navigator.pop(context, widget.reuse);
-                            },
-                          )
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-              child: GestureDetector(
-                onTap: () async {
-                  // String test= await Navigator.push(context, PageTransition(type: PageTransitionType.fade, child: NumberSelecter(analytics: widget.analytics,reuse: _reuse,)));
-
-                  await _showPicker(context);
-
-                  FirebaseFirestore.instance
-                      .collection('party')
-                      .doc(widget.partyName)
-                      .set({"numscan": widget.reuse}, SetOptions(merge: true));
-                },
-                child: Row(
-                  children: [
-                    Container(
-                      decoration: BoxDecoration(
-                          color: Colors.redAccent,
-                          borderRadius:
-                              BorderRadius.all(Radius.circular(15.0))),
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Icon(
-                          Icons.qr_code,
-                          size: 40,
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "Scans Per Code",
-                            style: TextStyle(
-                                fontSize: 20, fontWeight: FontWeight.bold),
-                          ),
-                          Text(
-                            "${widget.reuse}",
-                            style: TextStyle(
-                                fontSize: 20, fontWeight: FontWeight.bold),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Spacer(),
-                    Icon(Icons.chevron_right)
-                  ],
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 30, 20, 30),
-              child: GestureDetector(
-                onTap: () {
-                  erase_confermation();
-                },
-                child: Row(
-                  children: [
-                    Container(
-                      decoration: BoxDecoration(
-                          color: Colors.redAccent,
-                          borderRadius:
-                              BorderRadius.all(Radius.circular(15.0))),
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Icon(
-                          Icons.restart_alt_outlined,
-                          size: 40,
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "Reset Invite List",
-                            style: TextStyle(
-                                fontSize: 20, fontWeight: FontWeight.bold),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Spacer(),
-                    Icon(Icons.chevron_right)
-                  ],
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 20),
-              child: GestureDetector(
-                onTap: () {
-                  delete_confermation();
-                },
-                child: Row(
-                  children: [
-                    Container(
-                      decoration: BoxDecoration(
-                          color: Colors.redAccent,
-                          borderRadius:
-                              BorderRadius.all(Radius.circular(15.0))),
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Icon(
-                          Icons.delete,
-                          size: 40,
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "Delete Party",
-                            style: TextStyle(
-                                fontSize: 20, fontWeight: FontWeight.bold),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Spacer(),
-                    Icon(Icons.chevron_right)
-                  ],
-                ),
-              ),
-            ),
-            Spacer(),
-            Container(
-              height: 300,
-              child: ClipPath(
-                clipper: ProsteThirdOrderBezierCurve(
-                  position: ClipPosition.top,
-                  list: [
-                    ThirdOrderBezierCurveSection(
-                      p1: Offset(0, 100),
-                      p2: Offset(150, 300),
-                      p3: Offset(200, 100),
-                      p4: Offset(0, 200),
-                    ),
-                  ],
-                ),
-                child: Container(
-                  height: 300,
+            Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Container(
                   width: MediaQuery.of(context).size.width,
-                  color: Colors.redAccent,
+                  color: Colors.transparent,
                   child: SafeArea(
-                      child: Column(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(15.0),
-                        child: Text(
-                          "Credits",
-                          style: TextStyle(fontSize: 15, color: Colors.white),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(20.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                "Party Settings",
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 35,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                              IconButton(
+                                icon: Icon(
+                                  Icons.close,
+                                  size: 30,
+                                ),
+                                onPressed: () {
+                                  Navigator.pop(context, widget.reuse);
+                                },
+                              )
+                            ],
+                          ),
                         ),
+                      ],
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+                  child: GestureDetector(
+                    onTap: () async {
+                      // String test= await Navigator.push(context, PageTransition(type: PageTransitionType.fade, child: NumberSelecter(analytics: widget.analytics,reuse: _reuse,)));
+
+                      await _showPicker(context);
+
+                      FirebaseFirestore.instance
+                          .collection('party')
+                          .doc(widget.partyName)
+                          .set({"numscan": widget.reuse}, SetOptions(merge: true));
+
+                      widget.analytics.logEvent(
+                          name: "reuse_num_changed",
+                          parameters: {"num": widget.reuse});
+                    },
+                    child: Row(
+                      children: [
+                        Container(
+                          decoration: BoxDecoration(
+                              color: Colors.redAccent,
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(15.0))),
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Icon(
+                              Icons.qr_code,
+                              size: 40,
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Scans Per Code",
+                                style: TextStyle(
+                                    fontSize: 20, fontWeight: FontWeight.bold),
+                              ),
+                              Text(
+                                "${widget.reuse}",
+                                style: TextStyle(
+                                    fontSize: 20, fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Spacer(),
+                        Icon(Icons.chevron_right)
+                      ],
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 30, 20, 30),
+                  child: GestureDetector(
+                    onTap: () {
+                      erase_confermation();
+                      widget.analytics.logEvent(
+                          name: "party_reset",);
+                    },
+                    child: Row(
+                      children: [
+                        Container(
+                          decoration: BoxDecoration(
+                              color: Colors.redAccent,
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(15.0))),
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Icon(
+                              Icons.restart_alt_outlined,
+                              size: 40,
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Reset Invite List",
+                                style: TextStyle(
+                                    fontSize: 20, fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Spacer(),
+                        Icon(Icons.chevron_right)
+                      ],
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 20),
+                  child: GestureDetector(
+                    onTap: () {
+                      delete_confermation();
+                      widget.analytics.logEvent(
+                        name: "party_deleted",);
+                    },
+                    child: Row(
+                      children: [
+                        Container(
+                          decoration: BoxDecoration(
+                              color: Colors.redAccent,
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(15.0))),
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Icon(
+                              Icons.delete,
+                              size: 40,
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Delete Party",
+                                style: TextStyle(
+                                    fontSize: 20, fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Spacer(),
+                        Icon(Icons.chevron_right)
+                      ],
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 20),
+                  child: GestureDetector(
+                    onTap: () {
+
+                      widget.analytics.logEvent(
+                        name: "party_logged_out",);
+
+                      pushNewScreen(
+                        context,
+                        screen: LoginPage(analytics: widget.analytics),
+                        withNavBar: true, // OPTIONAL VALUE. True by default.
+                        pageTransitionAnimation: PageTransitionAnimation.cupertino,
+                      );
+                    },
+                    child: Row(
+                      children: [
+                        Container(
+                          decoration: BoxDecoration(
+                              color: Colors.redAccent,
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(15.0))),
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Icon(
+                              Icons.logout,
+                              size: 40,
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Log Out",
+                                style: TextStyle(
+                                    fontSize: 20, fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Spacer(),
+                        Icon(Icons.chevron_right)
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            Positioned(
+              bottom: 0,
+              child: Container(
+                height: 300,
+                child: ClipPath(
+                  clipper: ProsteThirdOrderBezierCurve(
+                    position: ClipPosition.top,
+                    list: [
+                      ThirdOrderBezierCurveSection(
+                        p1: Offset(0, 100),
+                        p2: Offset(150, 300),
+                        p3: Offset(200, 100),
+                        p4: Offset(0, 200),
                       ),
                     ],
-                  )),
+                  ),
+                  child: Container(
+                    height: 300,
+                    width: MediaQuery.of(context).size.width,
+                    color: Colors.grey.withOpacity(0.1),
+                    child: SafeArea(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.all(15.0),
+                              child: Text(
+                                "Credits",
+                                style: TextStyle(
+                                    fontSize: 15, color: Colors.white.withOpacity(0)),
+                              ),
+                            ),
+                          ],
+                        )),
+                  ),
                 ),
               ),
             ),
+
           ],
         ),
       ),
+    );
+  }
+
+  @override
+  void initState() {
+    _testSetCurrentScreen();
+    super.initState();
+
+  }
+
+  Future<void> _testSetCurrentScreen() async {
+    await widget.analytics.setCurrentScreen(
+      screenName: 'Party Settings Page',
+      screenClassOverride: 'Party_Settings_Page',
     );
   }
 }

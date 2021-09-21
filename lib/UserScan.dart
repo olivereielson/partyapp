@@ -9,6 +9,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
+import 'package:top_snackbar_flutter/top_snack_bar.dart';
 
 class UserScan extends StatefulWidget {
   UserScan({required this.analytics});
@@ -101,6 +102,8 @@ class _UserScanState extends State<UserScan> {
         style: TextStyle(color: Colors.white),
       ),
       backgroundColor: Colors.redAccent,
+      padding: EdgeInsets.all(8.0),
+
       action: SnackBarAction(
         label: 'ok',
         textColor: Colors.white,
@@ -192,6 +195,8 @@ class _UserScanState extends State<UserScan> {
                                   },
                                 );
                               } else {
+
+                                
                                 ScaffoldMessenger.of(context).showSnackBar(warning(
                                     "Flash can only be used with front camera"));
                                 widget.analytics.logEvent(

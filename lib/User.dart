@@ -14,6 +14,7 @@ import 'package:flutter/painting.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:page_transition/page_transition.dart';
+import 'package:persistent_bottom_nav_bar/persistent-tab-view.dart';
 import 'package:proste_bezier_curve/proste_bezier_curve.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -174,13 +175,15 @@ class _UserpageState extends State<Userpage>
   Widget button() {
     return IconButton(
         onPressed: () async {
-          String id = await Navigator.push(
-              context,
-              PageTransition(
-                  type: PageTransitionType.topToBottom,
-                  child: UserScan(
-                    analytics: widget.analytics,
-                  )));
+
+          String id = await pushNewScreen(
+            context,
+            screen: UserScan(
+              analytics: widget.analytics,
+            ),
+            withNavBar: false, // OPTIONAL VALUE. True by default.
+            pageTransitionAnimation: PageTransitionAnimation.cupertino,
+          );
 
           if (id != "0") {
             SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -311,36 +314,34 @@ class _UserpageState extends State<Userpage>
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-        onWillPop: () async => false,
-        child: GestureDetector(
-          onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-          child: Scaffold(
-              resizeToAvoidBottomInset: false,
+    return GestureDetector(
+      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+      child: Scaffold(
+          resizeToAvoidBottomInset: false,
 
-              body: PageView(
-                scrollDirection: Axis.horizontal,
-                physics: NeverScrollableScrollPhysics(),
-                controller: pc,
-                children: [
-                  NestedScrollView(
-                    headerSliverBuilder:
-                        (BuildContext context, bool innerBoxIsScrolled) {
-                      return <Widget>[
-                        SliverPersistentHeader(
-                          pinned: true,
-                          floating: true,
-                          delegate: MyDynamicHeader(button()),
-                        ),
-                      ];
-                    },
-                    body: savedInvitese(),
-                  ),
-              //    partySearch(),
-                  LoginPage(analytics: widget.analytics),
-                ],
-              )),
-        ));
+          body: PageView(
+            scrollDirection: Axis.horizontal,
+            physics: NeverScrollableScrollPhysics(),
+            controller: pc,
+            children: [
+              NestedScrollView(
+                headerSliverBuilder:
+                    (BuildContext context, bool innerBoxIsScrolled) {
+                  return <Widget>[
+                    SliverPersistentHeader(
+                      pinned: true,
+                      floating: true,
+                      delegate: MyDynamicHeader(button()),
+                    ),
+                  ];
+                },
+                body: savedInvitese(),
+              ),
+          //    partySearch(),
+              LoginPage(analytics: widget.analytics),
+            ],
+          )),
+    );
   }
 
   Future<void> _testSetCurrentScreen() async {

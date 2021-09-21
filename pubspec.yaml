@@ -47,6 +47,8 @@ dependencies:
   fluentui_system_icons:
   auto_size_text_pk:
   persistent_bottom_nav_bar:
+  top_snackbar_flutter:
+  tutorial_coach_mark:
 
 dev_dependencies:
   flutter_test:
