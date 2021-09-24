@@ -357,12 +357,18 @@ PODS:
     - FirebaseAnalytics (~> 8.6.0)
   - Firebase/CoreOnly (8.6.0):
     - FirebaseCore (= 8.6.0)
+  - Firebase/Crashlytics (8.6.0):
+    - Firebase/CoreOnly
+    - FirebaseCrashlytics (~> 8.6.0)
   - Firebase/Database (8.6.0):
     - Firebase/CoreOnly
     - FirebaseDatabase (~> 8.6.0)
   - Firebase/Firestore (8.6.0):
     - Firebase/CoreOnly
     - FirebaseFirestore (~> 8.6.0)
+  - Firebase/Performance (8.6.0):
+    - Firebase/CoreOnly
+    - FirebasePerformance (~> 8.6.0)
   - firebase_analytics (8.3.2):
     - Firebase/Analytics (= 8.6.0)
     - firebase_core
@@ -370,10 +376,20 @@ PODS:
   - firebase_core (1.6.0):
     - Firebase/CoreOnly (= 8.6.0)
     - Flutter
+  - firebase_crashlytics (2.2.1):
+    - Firebase/Crashlytics (= 8.6.0)
+    - firebase_core
+    - Flutter
   - firebase_database (8.0.0):
     - Firebase/Database (= 8.6.0)
     - firebase_core
     - Flutter
+  - firebase_performance (0.7.1-1):
+    - Firebase/Performance (= 8.6.0)
+    - firebase_core
+    - Flutter
+  - FirebaseABTesting (8.7.0):
+    - FirebaseCore (~> 8.0)
   - FirebaseAnalytics (8.6.0):
     - FirebaseAnalytics/AdIdSupport (= 8.6.0)
     - FirebaseCore (~> 8.0)
@@ -401,6 +417,13 @@ PODS:
     - GoogleUtilities/Environment (~> 7.4)
     - GoogleUtilities/Logger (~> 7.4)
     - nanopb (~> 2.30908.0)
+  - FirebaseCrashlytics (8.6.0):
+    - FirebaseCore (~> 8.0)
+    - FirebaseInstallations (~> 8.0)
+    - GoogleDataTransport (~> 9.0)
+    - GoogleUtilities/Environment (~> 7.4)
+    - nanopb (~> 2.30908.0)
+    - PromisesObjC (< 3.0, >= 1.2)
   - FirebaseDatabase (8.6.0):
     - FirebaseCore (~> 8.0)
     - leveldb-library (~> 1.22)
@@ -422,6 +445,21 @@ PODS:
     - GoogleUtilities/Environment (~> 7.4)
     - GoogleUtilities/UserDefaults (~> 7.4)
     - PromisesObjC (< 3.0, >= 1.2)
+  - FirebasePerformance (8.6.1):
+    - FirebaseCore (~> 8.0)
+    - FirebaseInstallations (~> 8.0)
+    - FirebaseRemoteConfig (~> 8.0)
+    - GoogleDataTransport (~> 9.0)
+    - GoogleUtilities/Environment (~> 7.4)
+    - GoogleUtilities/ISASwizzler (~> 7.4)
+    - GoogleUtilities/MethodSwizzler (~> 7.4)
+    - nanopb (~> 2.30908.0)
+  - FirebaseRemoteConfig (8.7.0):
+    - FirebaseABTesting (~> 8.0)
+    - FirebaseCore (~> 8.0)
+    - FirebaseInstallations (~> 8.0)
+    - GoogleUtilities/Environment (~> 7.4)
+    - "GoogleUtilities/NSData+zlib (~> 7.4)"
   - Flutter (1.0.0)
   - GoogleAppMeasurement (8.6.0):
     - GoogleAppMeasurement/AdIdSupport (= 8.6.0)
@@ -446,6 +484,7 @@ PODS:
     - GoogleUtilities/Network
   - GoogleUtilities/Environment (7.5.2):
     - PromisesObjC (< 3.0, >= 1.2)
+  - GoogleUtilities/ISASwizzler (7.5.2)
   - GoogleUtilities/Logger (7.5.2):
     - GoogleUtilities/Environment
   - GoogleUtilities/MethodSwizzler (7.5.2):
@@ -502,31 +541,40 @@ PODS:
     - Flutter
   - shared_preferences (0.0.1):
     - Flutter
+  - uni_links (0.0.1):
+    - Flutter
 
 DEPENDENCIES:
   - camera (from `.symlinks/plugins/camera/ios`)
   - cloud_firestore (from `.symlinks/plugins/cloud_firestore/ios`)
   - firebase_analytics (from `.symlinks/plugins/firebase_analytics/ios`)
   - firebase_core (from `.symlinks/plugins/firebase_core/ios`)
+  - firebase_crashlytics (from `.symlinks/plugins/firebase_crashlytics/ios`)
   - firebase_database (from `.symlinks/plugins/firebase_database/ios`)
+  - firebase_performance (from `.symlinks/plugins/firebase_performance/ios`)
   - Flutter (from `Flutter`)
   - path_provider (from `.symlinks/plugins/path_provider/ios`)
   - qr_code_scanner (from `.symlinks/plugins/qr_code_scanner/ios`)
   - share (from `.symlinks/plugins/share/ios`)
   - share_files_and_screenshot_widgets_plus (from `.symlinks/plugins/share_files_and_screenshot_widgets_plus/ios`)
   - shared_preferences (from `.symlinks/plugins/shared_preferences/ios`)
+  - uni_links (from `.symlinks/plugins/uni_links/ios`)
 
 SPEC REPOS:
   trunk:
     - abseil
     - BoringSSL-GRPC
     - Firebase
+    - FirebaseABTesting
     - FirebaseAnalytics
     - FirebaseCore
     - FirebaseCoreDiagnostics
+    - FirebaseCrashlytics
     - FirebaseDatabase
     - FirebaseFirestore
     - FirebaseInstallations
+    - FirebasePerformance
+    - FirebaseRemoteConfig
     - GoogleAppMeasurement
     - GoogleDataTransport
     - GoogleUtilities
@@ -546,8 +594,12 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/firebase_analytics/ios"
   firebase_core:
     :path: ".symlinks/plugins/firebase_core/ios"
+  firebase_crashlytics:
+    :path: ".symlinks/plugins/firebase_crashlytics/ios"
   firebase_database:
     :path: ".symlinks/plugins/firebase_database/ios"
+  firebase_performance:
+    :path: ".symlinks/plugins/firebase_performance/ios"
   Flutter:
     :path: Flutter
   path_provider:
@@ -560,6 +612,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/share_files_and_screenshot_widgets_plus/ios"
   shared_preferences:
     :path: ".symlinks/plugins/shared_preferences/ios"
+  uni_links:
+    :path: ".symlinks/plugins/uni_links/ios"
 
 SPEC CHECKSUMS:
   abseil: 6c8eb7892aefa08d929b39f9bb108e5367e3228f
@@ -569,13 +623,19 @@ SPEC CHECKSUMS:
   Firebase: 21ac9f28b09a8bdfc005f34c984fca84e7e8786d
   firebase_analytics: 039357074df292fb8a58e119206762d10483a8ec
   firebase_core: c21ac09a8d23afd3594b56ed786bad12e5266bba
+  firebase_crashlytics: b0581024be6112af8821de61e5a37fdb292373f0
   firebase_database: 019540b8b46654926d742c8eb1a3f54e6dc93a9f
+  firebase_performance: 91cb9660f71514f58ec72a14dc7f6f12f41bc86e
+  FirebaseABTesting: 5a72ea0e88422f9e223614cb4016cafffb2af8d1
   FirebaseAnalytics: 8f32ae54ad42754f503354782575c4ddfc1425c3
   FirebaseCore: 620b677f70f5470a8e59cb77f3ddc666f6f09785
   FirebaseCoreDiagnostics: 3721920bde3a9a6d5aa093c1d25e9d3e47f694af
+  FirebaseCrashlytics: 58f8ecea7c799c61c50e8111d2e438424a8a1d2e
   FirebaseDatabase: 917fbeed577a68eb1ba0eb48c52a3aa10ac13f92
   FirebaseFirestore: 7b8bd72aff4d3ad91498343e81fdbaa994ce8abe
   FirebaseInstallations: 0ede6ffcd215b8f93c19d9b06c1c54e2d4107e98
+  FirebasePerformance: 5177c87ffbb447f73aa96796e0573c3698238954
+  FirebaseRemoteConfig: 34300dd83055c06e2768d0932dd8fb2c1575745f
   Flutter: 50d75fe2f02b26cc09d224853bb45737f8b3214a
   GoogleAppMeasurement: 2c0c6e2a7ab3fe730ade6379f732bdefb46f50b0
   GoogleDataTransport: 85fd18ff3019bb85d3f2c551d04c481dedf71fc9
@@ -591,6 +651,7 @@ SPEC CHECKSUMS:
   share: 0b2c3e82132f5888bccca3351c504d0003b3b410
   share_files_and_screenshot_widgets_plus: c156887aae7bae38739f0b4a95fcb0959d6f333c
   shared_preferences: 5033afbb22d372e15aff8ff766df9021b845f273
+  uni_links: d97da20c7701486ba192624d99bffaaffcfc298a
 
 PODFILE CHECKSUM: fe0e1ee7f3d1f7d00b11b474b62dd62134535aea
 

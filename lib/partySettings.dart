@@ -54,6 +54,18 @@ class _party_settingsState extends State<party_settings> {
                     .doc(widget.partyName)
                     .delete()
                     .then((value) {
+
+                  pushNewScreen(
+                    context,
+                    screen: LoginPage(
+                      analytics: widget.analytics,
+                    ),
+                    withNavBar: true,
+                    pageTransitionAnimation: PageTransitionAnimation.cupertino,
+
+                  );
+
+
                   Navigator.push(
                       context,
                       PageTransition(

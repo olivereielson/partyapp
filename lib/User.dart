@@ -6,6 +6,7 @@ import 'package:bouncer/login.dart';
 import 'package:bouncer/search.dart';
 import 'package:card_swiper/card_swiper.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
@@ -176,6 +177,9 @@ class _UserpageState extends State<Userpage>
     return IconButton(
         onPressed: () async {
 
+
+          //FirebaseCrashlytics.instance.crash();
+
           String id = await pushNewScreen(
             context,
             screen: UserScan(
@@ -311,6 +315,8 @@ class _UserpageState extends State<Userpage>
     SharedPreferences prefs = await SharedPreferences.getInstance();
     return prefs;
   }
+
+
 
   @override
   Widget build(BuildContext context) {
