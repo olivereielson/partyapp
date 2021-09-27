@@ -1,10 +1,17 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:firebase_performance/firebase_performance.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
+import 'package:top_snackbar_flutter/custom_snack_bar.dart';
+import 'package:top_snackbar_flutter/top_snack_bar.dart';
 
 class HostScan extends StatefulWidget {
   HostScan(
@@ -28,7 +35,11 @@ class _HostScanState extends State<HostScan> {
   bool _scanning = false;
   String _homeID = "";
   bool flash = false;
-  int _reuse = 1;
+  FirebasePerformance _performance = FirebasePerformance.instance;
+
+  late StreamSubscription<ConnectivityResult> _connectivitySubscription;
+  ConnectivityResult _connectionStatus = ConnectivityResult.none;
+  final Connectivity _connectivity = Connectivity();
 
   String _message = "Scan Code";
   Color _messageColor = Colors.redAccent;
@@ -68,8 +79,12 @@ class _HostScanState extends State<HostScan> {
 
   Future<void> scandata(Barcode result, DocumentReference party) async {
     _scanning = true;
+    final Trace trace = _performance.newTrace('host_scan');
+    await trace.start();
 
-    party.get().then((DocumentSnapshot documentSnapshot) {
+    party.get().then((DocumentSnapshot documentSnapshot) async {
+
+
       try {
         if (documentSnapshot.get(result.code) == 0) {
           _messageColor = Colors.orangeAccent;
@@ -81,22 +96,17 @@ class _HostScanState extends State<HostScan> {
             },
           );
         }
+        if (documentSnapshot.get(result.code) != 0 && documentSnapshot.get(result.code) != null) {
 
-        if (documentSnapshot.get(result.code) != 0 &&
-            documentSnapshot.get(result.code) != null) {
-          party.get().then((DocumentSnapshot documentSnapshot) {
-            if (documentSnapshot.get(result.code) > 1) {
-              party.set({result.code: documentSnapshot.get(result.code) - 1},
-                  SetOptions(merge: true));
-            } else {
-              party.set({result.code: 0}, SetOptions(merge: true));
-            }
-          });
 
-          party.get().then((DocumentSnapshot documentSnapshot) {
-            party.set({"scans": documentSnapshot.get("scans") + 1},
-                SetOptions(merge: true));
-          });
+          if (documentSnapshot.get(result.code) > 1) {
+            party.set({result.code: documentSnapshot.get(result.code) - 1}, SetOptions(merge: true));
+          } else {
+            party.set({result.code: 0}, SetOptions(merge: true));
+          }
+
+          party.set({"scans": documentSnapshot.get("scans") + 1},
+              SetOptions(merge: true));
 
           setState(() {
             _messageColor = Colors.green;
@@ -109,20 +119,35 @@ class _HostScanState extends State<HostScan> {
             );
           });
         }
-      } catch (e) {
-        setState(() {
+
+
+
+      } catch (e,s) {
+
+
+        if(e.toString()=="Bad state: field does not exist within the DocumentSnapshotPlatform"){
+          setState(() {
+            _messageColor = Colors.orangeAccent;
+            _message = "Rejected";
+            widget.analytics.logEvent(
+              name: 'invite_scanned',
+              parameters: <String, dynamic>{
+                'outcome': 'rejected',
+              },
+            );
+          });
+        }else{
+
           _messageColor = Colors.orangeAccent;
-          _message = "Rejected";
-          widget.analytics.logEvent(
-            name: 'invite_scanned',
-            parameters: <String, dynamic>{
-              'outcome': 'rejected',
-            },
-          );
-        });
+          _message = "Unknown Error";
+          await FirebaseCrashlytics.instance.recordError(e, s, reason: 'Host Scan Failed');
+
+        }
+
+
       }
     });
-
+    await trace.stop();
     await Future.delayed(Duration(seconds: 1));
     setState(() {
       _message = "Scan Code";
@@ -145,9 +170,7 @@ class _HostScanState extends State<HostScan> {
 
   @override
   Widget build(BuildContext context) {
-    DocumentReference party =
-        FirebaseFirestore.instance.collection('party').doc(widget.partyName);
-
+    DocumentReference party = FirebaseFirestore.instance.collection('party').doc(widget.partyName);
     return WillPopScope(
         onWillPop: () async => false,
         child: Scaffold(
@@ -165,7 +188,8 @@ class _HostScanState extends State<HostScan> {
               ),
               Positioned(
                 top: 0,
-                child: Container(
+                child: AnimatedContainer(
+                  duration: Duration(milliseconds: 200),
                   height: 180,
                   width: MediaQuery.of(context).size.width,
                   decoration: new BoxDecoration(
@@ -254,14 +278,70 @@ class _HostScanState extends State<HostScan> {
 
   @override
   void initState() {
-   // _testSetCurrentScreen();
+    _testSetCurrentScreen();
     super.initState();
+    initConnectivity();
+
+    _connectivitySubscription = _connectivity.onConnectivityChanged.listen(_updateConnectionStatus);
   }
+
+
 
   Future<void> _testSetCurrentScreen() async {
     await widget.analytics.setCurrentScreen(
-      screenName: 'Party Home Page',
-      screenClassOverride: 'Party Home Page',
+      screenName: 'Party Home Scan',
+      screenClassOverride: 'party_home_scan',
     );
   }
+
+  @override
+  void dispose() {
+    _connectivitySubscription.cancel();
+    super.dispose();
+  }
+
+
+  Future<void> initConnectivity() async {
+    late ConnectivityResult result;
+    // Platform messages may fail, so we use a try/catch PlatformException.
+    try {
+      result = await _connectivity.checkConnectivity();
+    } on PlatformException catch (e) {
+      print(e.toString());
+      return;
+    }
+
+    // If the widget was removed from the tree while the asynchronous platform
+    // message was in flight, we want to discard the reply rather than calling
+    // setState to update our non-existent appearance.
+    if (!mounted) {
+      return Future.value(null);
+    }
+
+    return _updateConnectionStatus(result);
+  }
+  Future<void> _updateConnectionStatus(ConnectivityResult result) async {
+
+
+    if(result==ConnectivityResult.none){
+
+      print("no internet");
+
+      setState(() {
+        _message = "No Internet";
+        _messageColor = Colors.orangeAccent;
+      });
+    }else{
+
+      setState(() {
+        _message = "Scan Code";
+        _messageColor = Colors.redAccent;
+      });
+
+
+
+    }
+
+  }
+
 }

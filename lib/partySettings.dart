@@ -1,3 +1,4 @@
+import 'package:bouncer/createparty.dart';
 import 'package:bouncer/numberselect.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
@@ -27,8 +28,8 @@ class party_settings extends StatefulWidget {
 class _party_settingsState extends State<party_settings> {
   bool _reusedCodes = false;
 
-  void delete_confermation() {
-    showDialog(
+  Future<bool> delete_confermation() async {
+  bool test= await   showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: Text("Delete Party?"),
@@ -41,7 +42,7 @@ class _party_settingsState extends State<party_settings> {
                 style: TextStyle(color: Colors.white),
               ),
               onPressed: () {
-                Navigator.pop(context);
+                Navigator.pop(context,false);
               }),
           CupertinoButton(
               child: Text(
@@ -49,35 +50,21 @@ class _party_settingsState extends State<party_settings> {
                 style: TextStyle(color: Colors.redAccent),
               ),
               onPressed: () async {
-                FirebaseFirestore.instance
-                    .collection('party')
-                    .doc(widget.partyName)
-                    .delete()
-                    .then((value) {
 
-                  pushNewScreen(
-                    context,
-                    screen: LoginPage(
-                      analytics: widget.analytics,
-                    ),
-                    withNavBar: true,
-                    pageTransitionAnimation: PageTransitionAnimation.cupertino,
-
-                  );
+                Navigator.pop(context,true);
 
 
-                  Navigator.push(
-                      context,
-                      PageTransition(
-                          type: PageTransitionType.fade,
-                          child: LoginPage(
-                            analytics: widget.analytics,
-                          )));
-                });
+                //Navigator.of(context).popUntil(ModalRoute.withName('/my-target-screen'));
+
+          
+               // FirebaseFirestore.instance.collection('party').doc(widget.partyName).delete().then((value) {});
               }),
         ],
       ),
     );
+
+  return test;
+
   }
 
   void erase_confermation() {
@@ -119,6 +106,10 @@ class _party_settingsState extends State<party_settings> {
       ),
     );
   }
+
+  // /Users/olivereielson/Documents/GitHub/partyapp/ios/Pods/FirebaseCrashlytics/upload-symbols -gsp /Users/olivereielson/Documents/GitHub/partyapp/ios/Runner/GoogleService-Info.plist -p ios /path/to/dSYMs
+
+
 
   Widget reuseWidhet() {
     return Padding(
@@ -317,10 +308,17 @@ class _party_settingsState extends State<party_settings> {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 30, 20, 30),
                   child: GestureDetector(
-                    onTap: () {
-                      erase_confermation();
+                    onTap: () async {
+                     erase_confermation();
+
                       widget.analytics.logEvent(
-                          name: "party_reset",);
+                        name: "party_reset",);
+
+
+
+
+
+
                     },
                     child: Row(
                       children: [
@@ -359,10 +357,32 @@ class _party_settingsState extends State<party_settings> {
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 20),
                   child: GestureDetector(
-                    onTap: () {
-                      delete_confermation();
+                    onTap: () async {
+                      bool test= await delete_confermation();
+
+                      if(test){
+
+
+                        FirebaseFirestore.instance.collection('party').doc(widget.partyName).delete().then((value){
+
+
+                          pushNewScreen(
+                            context,
+                            screen: LoginPage(analytics: widget.analytics),
+                            withNavBar: true, // OPTIONAL VALUE. True by default.
+                            pageTransitionAnimation: PageTransitionAnimation.cupertino,
+                          );
+
+
+                        });
+
+
+                      }
+
                       widget.analytics.logEvent(
-                        name: "party_deleted",);
+                        name: "party_delete_clicked",parameters: {
+                          "deleted":test
+                      });
                     },
                     child: Row(
                       children: [

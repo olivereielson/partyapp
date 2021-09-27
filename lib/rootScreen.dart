@@ -198,9 +198,11 @@ class _rootScreenState extends State<rootScreen> {
                   duration: Duration(milliseconds: 200),
                 ),
 
+
                 navBarStyle: NavBarStyle
                     .style8, // Choose the nav bar style with this property.
               ),
+
             ),
           );
 

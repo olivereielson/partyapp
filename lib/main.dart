@@ -10,11 +10,13 @@ import 'package:bouncer/partySettings.dart';
 import 'package:bouncer/partyStructure.dart';
 import 'package:bouncer/rootScreen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_analytics/observer.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_performance/firebase_performance.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -47,13 +49,8 @@ Future<void> main() async {
 
 GlobalKey<NavigatorState> mainNavigatorKey = GlobalKey<NavigatorState>();
 
-
-
 class MyApp extends StatelessWidget {
   FirebaseAnalytics analytics = FirebaseAnalytics();
-
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -99,11 +96,15 @@ class _MyHomePageState extends State<MyHomePage> {
   String _homeID = "";
   bool flash = false;
   int _reuse = 1;
-  String cashId="";
-  String cashPath="";
+  String cashId = "";
+  String cashPath = "";
   ScreenshotController screenshotController = ScreenshotController();
-  String _message = "Scan Code";
-  Color _messageColor = Colors.redAccent;
+  FirebasePerformance _performance = FirebasePerformance.instance;
+  ConnectivityResult _connectionStatus = ConnectivityResult.none;
+  final Connectivity _connectivity = Connectivity();
+  late StreamSubscription<ConnectivityResult> _connectivitySubscription;
+
+
 
   GlobalKey keyButton = GlobalKey();
   GlobalKey keyButton1 = GlobalKey();
@@ -111,8 +112,6 @@ class _MyHomePageState extends State<MyHomePage> {
   GlobalKey keyButton3 = GlobalKey();
   GlobalKey keyButton4 = GlobalKey();
   GlobalKey keyButton5 = GlobalKey();
-
-
 
   SnackBar warning(String warning) {
     return SnackBar(
@@ -205,12 +204,12 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   shareCode(DocumentReference party) async {
+    final Trace trace = _performance.newTrace('share_trace');
+    await trace.start();
 
-
-    if(cashId==""||cashPath==""){
+    if (cashId == "" || cashPath == "") {
       await Storecode;
     }
-
 
     party.set({cashId: _reuse}, SetOptions(merge: true));
 
@@ -222,26 +221,18 @@ class _MyHomePageState extends State<MyHomePage> {
     await Share.shareFiles([cashPath],
         text: "Save in App:PartyLabs://PartyLabsInviteCodeLink.com/${cashId}");
 
-    setState(() {}
+    setState(() {});
 
-
-
-
-
-
-
-    );
-
-    cashPath="";
-    cashId="";
+    cashPath = "";
+    cashId = "";
     Storecode();
+    await trace.stop();
   }
 
   Storecode() async {
-
     String id = generateID();
-    cashId=id;
-   await screenshotController
+    cashId = id;
+    await screenshotController
         .captureFromWidget(
       Container(
         height: 200,
@@ -279,524 +270,456 @@ class _MyHomePageState extends State<MyHomePage> {
       final directory = (await getApplicationDocumentsDirectory()).path;
       File imgFile = new File('$directory/photo.png');
       await imgFile.writeAsBytes(image);
-      cashPath=imgFile.path;
+      cashPath = imgFile.path;
     });
-
   }
 
-  Scaffold page1() {
-    DocumentReference party =
-        FirebaseFirestore.instance.collection('party').doc(widget.partyName);
-
-    return Scaffold(
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-        title: AutoSizeText(
-          widget.partyName,
-          maxLines: 1,
-          style: TextStyle(fontSize: 25),
-        ),
-        leadingWidth: 80,
-        leading:IconButton(
-            onPressed: () {
-              widget.analytics.logEvent(
-                name: 'info_card_clicked',
-              );
-
-              targets.clear();
-              createTargets();
-              showTutorial();
-
-            },
-            icon: Icon(CupertinoIcons.info,size: 30,)),
-        actions: [
-           IconButton(
-             key:keyButton5,
-
-             icon: Icon(
-        Icons.qr_code_scanner_outlined,
-        size: 30,
-      ),
-      onPressed: () {
-        pushNewScreen(
-          context,
-          screen: HostScan(
-
-            partyName: widget.partyName,
-            partyCode: widget.partyCode,
-            analytics: widget.analytics,
-
-          ),
-          withNavBar: false,
-          pageTransitionAnimation: PageTransitionAnimation.cupertino,
-
-        );
-
-      },
-    ),
-        ],
-      ),
-
-
-
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Expanded(
-
-              flex: 1,
-              child: Container()),
-
-          Expanded(
-            flex: 4,
-            child: Padding(
-              padding: const EdgeInsets.only(top: 0),
+  void createTargets() {
+    targets.add(TargetFocus(
+        identify: "Target 1",
+        keyTarget: keyButton,
+        shape: ShapeLightFocus.RRect,
+        radius: 20,
+        contents: [
+          TargetContent(
+              align: ContentAlign.bottom,
               child: Container(
-                key: keyButton,
-                width: MediaQuery.of(context).size.width - 50,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Colors.redAccent, width: 3),
-
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.redAccent.withOpacity(00),
-                      spreadRadius: 2,
-                      blurRadius: 7,
-                      offset: Offset(0, 3), // changes position of shadow
-                    ),
-                  ],
-                  // color: Colors.redAccent,
-                ),
-                child: Stack(
-                  children: [
-                    Positioned(
-                        top: 15,
-                        left: 15,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(10),
-                            color: Colors.grey.withOpacity(0.1),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Image.asset(
-                              "assets/logo_white.png",
-                              width: 20,
-                              color: Colors.redAccent.withOpacity(1),
-                            ),
-                          ),
-                        )),
-                    Positioned(
-                      child: IconButton(
-                        key: keyButton2,
-                        icon: Icon(CupertinoIcons.share),
-                        onPressed: () {
-
-
-                          shareCode(party);
-                          widget.analytics.logEvent(
-                            name: 'invite_sent',
-                          );
-
-                        },
-                      ),
-                      top: 5,
-                      right: 5,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      "Invite Card",
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          fontSize: 20.0),
                     ),
                     Padding(
-                      padding: const EdgeInsets.all(30.0),
-                      child: Center(
-                        child: QrImage(
-                          size: 200,
-                          data:
-                              "${widget.partyName},${widget.partyCode},$_reuse",
-                          foregroundColor: Colors.white,
-                          version: QrVersions.auto,
-                        ),
+                      padding: const EdgeInsets.only(top: 10.0),
+                      child: Text(
+                        "Users can scan this card to have an invite added to their saved passes.  Never send a user a screenshot of this code",
+                        style: TextStyle(color: Colors.white),
                       ),
-                    ),
+                    )
                   ],
                 ),
-              ),
-            ),
-          ),
-
-          Expanded(
-
-              flex: 2,
-              child: Container()),
-
-          Expanded(
-            flex: 4,
-            child: Container(
-              decoration: new BoxDecoration(
-                  color: Colors.grey.withOpacity(0.1),
-                  border: Border.all(
-                    color: Colors.transparent,
-                    width: 5,
+              ))
+        ]));
+    targets.add(
+        TargetFocus(identify: "Target 2", keyTarget: keyButton2, contents: [
+      TargetContent(
+          align: ContentAlign.bottom,
+          child: Container(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  "Send Code",
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      fontSize: 20.0),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(top: 10.0),
+                  child: Text(
+                    "This lets you send users an invite code. Each user needs their own code.",
+                    style: TextStyle(color: Colors.white),
                   ),
-                  borderRadius: new BorderRadius.only(
-                    topLeft: const Radius.circular(40.0),
-                    topRight: const Radius.circular(40.0),
-                   // bottomRight: const Radius.circular(40.0),
-                    //bottomLeft: const Radius.circular(40.0),
-                  )),
-              width: MediaQuery.of(context).size.width,
-              child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20,vertical: 10),
-                  child: StreamBuilder<DocumentSnapshot>(
-                      stream: FirebaseFirestore.instance
-                          .collection('party')
-                          .doc(widget.partyName)
-                          .snapshots(),
-
-                      key:            keyButton3,
-                      builder: (context,
-                          AsyncSnapshot<DocumentSnapshot> snapshot) {
-                        if (snapshot.hasError) {
-                          return Center(child: Text('Something went wrong'));
-                        }
-
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return Center(child: Text("Loading"));
-                        }
-
-                        return Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment:
-                                  MainAxisAlignment.spaceBetween,
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 0, vertical: 20),
-                                  child: Text(
-                                    "Party Info",
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 30),
-                                  ),
-                                ),
-                                IconButton(
-
-                                    onPressed: () async {
-                                      _reuse= await Navigator.push(
-                                          context,
-                                          PageTransition(
-                                              type: PageTransitionType.fade,
-                                              child: party_settings(
-                                                widget.analytics,
-                                                partyName: widget.partyName,
-                                                partyCode: widget.partyCode,
-                                                reuse: _reuse,
-                                              )));
-
-                                      setState(() {
-
-                                      });
-
-                                    },
-                                    key:keyButton4,
-                                    icon: Icon(
-
-                                      Icons.settings,
-                                      color: Colors.white,
-                                    ))
-                              ],
-                            ),
-                            Row(
-                              mainAxisAlignment:
-                                  MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  "Invitations Sent",
-                                  style: TextStyle(
-                                      fontSize: 20,
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold),
-                                ),
-                                Text(
-                                  snapshot.data!.get("invites").toString(),
-                                  style: TextStyle(
-                                      fontSize: 20,
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold),
-                                ),
-                              ],
-                            ),
-                            Padding(
-                              padding:
-                                  const EdgeInsets.only(bottom: 20, top: 20),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    "People Inside",
-                                    style: TextStyle(
-                                        fontSize: 20,
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold),
-                                  ),
-                                  Text(
-                                    snapshot.data!.get("scans").toString(),
-                                    style: TextStyle(
-                                        fontSize: 20,
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Row(
-                              mainAxisAlignment:
-                              MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  "Scans Per Invite",
-                                  style: TextStyle(
-                                      fontSize: 20,
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold),
-                                ),
-                                Text(
-                                  _reuse.toString(),
-                                  style: TextStyle(
-                                      fontSize: 20,
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold),
-                                ),
-                              ],
-                            ),
-
-
-                          ],
-                        );
-                      })),
+                )
+              ],
             ),
-          ),
-        ],
-      ),
-    );
-  }
+          ))
+    ]));
 
-  void createTargets(){
-
+    targets.add(TargetFocus(
+        identify: "Target 3",
+        keyTarget: keyButton3,
+        shape: ShapeLightFocus.RRect,
+        radius: 20,
+        contents: [
+          TargetContent(
+              align: ContentAlign.top,
+              child: Container(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      "Party Info",
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          fontSize: 20.0),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 10.0),
+                      child: Text(
+                        "This lets you track how many people you have invited and how many people you have scanned in. You can also see how many times the code you are sending can be scanned before it will be rejected (the default is 1). ",
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    )
+                  ],
+                ),
+              ))
+        ]));
 
     targets.add(
-        TargetFocus(
-            identify: "Target 1",
-            keyTarget: keyButton,
-            shape: ShapeLightFocus.RRect,
-            radius:20,
-            contents: [
-              TargetContent(
-                  align: ContentAlign.bottom,
-                  child: Container(
-                    child:Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Text(
-                          "Invite Card",
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                              fontSize: 20.0
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(top: 10.0),
-                          child: Text("Users can scan this card to have an invite added to their saved passes.  Never send a user a screenshot of this code",
-                            style: TextStyle(
-                                color: Colors.white
-                            ),),
-                        )
-                      ],
-                    ),
-                  )
-              )
-            ]
-        )
-    );
-    targets.add(
-        TargetFocus(
-            identify: "Target 2",
-            keyTarget: keyButton2,
-
-            contents: [
-              TargetContent(
-                  align: ContentAlign.bottom,
-                  child: Container(
-                    child:Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Text(
-                          "Send Code",
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                              fontSize: 20.0
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(top: 10.0),
-                          child: Text("This lets you send users an invite code. Each user needs their own code.",
-                            style: TextStyle(
-                                color: Colors.white
-                            ),),
-                        )
-                      ],
-                    ),
-                  )
-              )
-            ]
-        )
-    );
+        TargetFocus(identify: "Target 4", keyTarget: keyButton4, contents: [
+      TargetContent(
+          align: ContentAlign.bottom,
+          child: Container(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  "Control Party Settings",
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      fontSize: 20.0),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(top: 10.0),
+                  child: Text(
+                    "This lets you track how many people you have invited and how many people you have scanned in. You can also see how many times the code you are sending can be scanned before it will be rejected (the default is 1). ",
+                    style: TextStyle(color: Colors.white.withOpacity(0)),
+                  ),
+                )
+              ],
+            ),
+          ))
+    ]));
 
     targets.add(
-        TargetFocus(
-            identify: "Target 3",
-            keyTarget: keyButton3,
-            shape: ShapeLightFocus.RRect,
-            radius:20,
-            contents: [
-              TargetContent(
-                  align: ContentAlign.top,
-                  child: Container(
-                    child:Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Text(
-                          "Party Info",
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                              fontSize: 20.0
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(top: 10.0),
-                          child: Text("This lets you track how many people you have invited and how many people you have scanned in. You can also see how many times the code you are sending can be scanned before it will be rejected (the default is 1). ",
-                            style: TextStyle(
-                                color: Colors.white
-                            ),),
-                        )
-                      ],
-                    ),
-                  )
-              )
-            ]
-        )
-    );
-
-    targets.add(
-        TargetFocus(
-            identify: "Target 4",
-            keyTarget: keyButton4,
-            contents: [
-              TargetContent(
-                  align: ContentAlign.bottom,
-                  child: Container(
-                    child:Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Text(
-                          "Control Party Settings",
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                              fontSize: 20.0
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(top: 10.0),
-                          child: Text("This lets you track how many people you have invited and how many people you have scanned in. You can also see how many times the code you are sending can be scanned before it will be rejected (the default is 1). ",
-                            style: TextStyle(
-                                color: Colors.white.withOpacity(0)
-                            ),),
-                        )
-                      ],
-                    ),
-                  )
-              )
-            ]
-        )
-    );
-
-    targets.add(
-        TargetFocus(
-            identify: "Target 5",
-            keyTarget: keyButton5,
-            contents: [
-              TargetContent(
-                  align: ContentAlign.bottom,
-                  child: Container(
-                    child:Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Text(
-                          "Scan Codes",
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                              fontSize: 20.0
-                          ),
-                        ),
-
-
-                      ],
-                    ),
-                  )
-              )
-            ]
-        )
-    );
-
-
+        TargetFocus(identify: "Target 5", keyTarget: keyButton5, contents: [
+      TargetContent(
+          align: ContentAlign.bottom,
+          child: Container(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  "Scan Codes",
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      fontSize: 20.0),
+                ),
+              ],
+            ),
+          ))
+    ]));
   }
 
   void showTutorial() {
-    TutorialCoachMark tutorial = TutorialCoachMark(
-        context,
-        targets: targets, // List<TargetFocus>
-        colorShadow: Colors.red, // DEFAULT Colors.black
+    TutorialCoachMark tutorial = TutorialCoachMark(context,
+        targets: targets,
+        // List<TargetFocus>
+        colorShadow: Colors.red,
+        // DEFAULT Colors.black
         alignSkip: Alignment.topLeft,
         textSkip: "SKIP",
         // paddingFocus: 10,
         // focusAnimationDuration: Duration(milliseconds: 500),
         // pulseAnimationDuration: Duration(milliseconds: 500),
         // pulseVariation: Tween(begin: 1.0, end: 0.99),
-        onFinish: (){
-          print("finish");
-        },
-        onClickTarget: (target){
-          print(target);
-        },
-        onSkip: (){
-          print("skip");
-        }
-    )..show();
-
+        onFinish: () {
+      print("finish");
+    }, onClickTarget: (target) {
+      print(target);
+    }, onSkip: () {
+      widget.analytics.logEvent(
+        name: 'info_skipped',
+      );
+    })
+      ..show();
   }
-
-
 
   @override
   Widget build(BuildContext context) {
+    DocumentReference party =
+        FirebaseFirestore.instance.collection('party').doc(widget.partyName);
     return WillPopScope(
-      onWillPop: () async => false,
-      child: page1()
-    );
+        onWillPop: () async => false,
+        child: Scaffold(
+          appBar: AppBar(
+            elevation: 0,
+            backgroundColor: Colors.transparent,
+            title: AutoSizeText(
+              widget.partyName,
+              maxLines: 1,
+              style: TextStyle(fontSize: 25),
+            ),
+            leadingWidth: 80,
+            leading: IconButton(
+                onPressed: () {
+                  widget.analytics.logEvent(
+                    name: 'info_button_clicked',
+                  );
+                  targets.clear();
+                  createTargets();
+                  showTutorial();
+                },
+                icon: Icon(
+                  CupertinoIcons.info,
+                  size: 30,
+                )),
+            actions: [
+              IconButton(
+                key: keyButton5,
+                icon: Icon(
+                  Icons.qr_code_scanner_outlined,
+                  size: 30,
+                ),
+                onPressed: () {
+                  pushNewScreen(
+                    context,
+                    screen: HostScan(
+                      partyName: widget.partyName,
+                      partyCode: widget.partyCode,
+                      analytics: widget.analytics,
+                    ),
+                    withNavBar: false,
+                    pageTransitionAnimation: PageTransitionAnimation.cupertino,
+                  );
+                },
+              ),
+            ],
+          ),
+          body: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(flex: 1, child: Container()),
+              Expanded(
+                flex: 4,
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 0),
+                  child: Container(
+                    key: keyButton,
+                    width: MediaQuery.of(context).size.width - 50,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: Colors.redAccent, width: 3),
+
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.redAccent.withOpacity(00),
+                          spreadRadius: 2,
+                          blurRadius: 7,
+                          offset: Offset(0, 3), // changes position of shadow
+                        ),
+                      ],
+                      // color: Colors.redAccent,
+                    ),
+                    child: Stack(
+                      children: [
+                        Positioned(
+                            top: 15,
+                            left: 15,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(10),
+                                color: Colors.grey.withOpacity(0.1),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Image.asset(
+                                  "assets/logo_white.png",
+                                  width: 20,
+                                  color: Colors.redAccent.withOpacity(1),
+                                ),
+                              ),
+                            )),
+                        Positioned(
+                          child: IconButton(
+                            key: keyButton2,
+                            icon: Icon(CupertinoIcons.share),
+                            onPressed: () {
+                              shareCode(party);
+                              widget.analytics.logEvent(
+                                name: 'invite_sent',
+                              );
+                            },
+                          ),
+                          top: 5,
+                          right: 5,
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(30.0),
+                          child: Center(
+                            child: QrImage(
+                              size: 200,
+                              data:
+                                  "${widget.partyName},${widget.partyCode},$_reuse",
+                              foregroundColor: Colors.white,
+                              version: QrVersions.auto,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              Expanded(flex: 2, child: Container()),
+              Expanded(
+                flex: 4,
+                child: Container(
+                  decoration: new BoxDecoration(
+                      color: Colors.grey.withOpacity(0.1),
+                      border: Border.all(
+                        color: Colors.transparent,
+                        width: 5,
+                      ),
+                      borderRadius: new BorderRadius.only(
+                        topLeft: const Radius.circular(40.0),
+                        topRight: const Radius.circular(40.0),
+                        // bottomRight: const Radius.circular(40.0),
+                        //bottomLeft: const Radius.circular(40.0),
+                      )),
+                  width: MediaQuery.of(context).size.width,
+                  child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 10),
+                      child:_connectionStatus==ConnectivityResult.none?Center(child: Text("No Internet Connection")):StreamBuilder<DocumentSnapshot>(
+                          stream: FirebaseFirestore.instance
+                              .collection('party')
+                              .doc(widget.partyName)
+                              .snapshots(),
+                          key: keyButton3,
+                          builder: (context,
+                              AsyncSnapshot<DocumentSnapshot> snapshot) {
+                            if (snapshot.hasError) {
+                              return Center(
+                                  child: Text('Something went wrong'));
+                            }
+
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return Center(child: Text("Loading"));
+                            }
+
+                            return Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 0, vertical: 20),
+                                      child: Text(
+                                        "Party Info",
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 30),
+                                      ),
+                                    ),
+                                    IconButton(
+                                        onPressed: () async {
+                                          _reuse = await Navigator.push(
+                                              context,
+                                              PageTransition(
+                                                  type: PageTransitionType.fade,
+                                                  child: party_settings(
+                                                    widget.analytics,
+                                                    partyName: widget.partyName,
+                                                    partyCode: widget.partyCode,
+                                                    reuse: _reuse,
+                                                  )));
+
+                                          if (_reuse == -1) {
+                                            Navigator.pop(context);
+                                          }
+
+                                          setState(() {});
+                                        },
+                                        key: keyButton4,
+                                        icon: Icon(
+                                          Icons.settings,
+                                          color: Colors.white,
+                                        ))
+                                  ],
+                                ),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      "Invitations Sent",
+                                      style: TextStyle(
+                                          fontSize: 20,
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                    Text(
+                                      snapshot.data!.get("invites").toString(),
+                                      style: TextStyle(
+                                          fontSize: 20,
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                  ],
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.only(
+                                      bottom: 20, top: 20),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        "People Inside",
+                                        style: TextStyle(
+                                            fontSize: 20,
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                      Text(
+                                        snapshot.data!.get("scans").toString(),
+                                        style: TextStyle(
+                                            fontSize: 20,
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      "Scans Per Invite",
+                                      style: TextStyle(
+                                          fontSize: 20,
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                    Text(
+                                      _reuse.toString(),
+                                      style: TextStyle(
+                                          fontSize: 20,
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            );
+                          })),
+                ),
+              ),
+            ],
+          ),
+        ));
   }
 
   @override
@@ -805,7 +728,8 @@ class _MyHomePageState extends State<MyHomePage> {
     createTargets();
     super.initState();
     Storecode();
-
+    initConnectivity();
+    _connectivitySubscription = _connectivity.onConnectivityChanged.listen(_updateConnectionStatus);
   }
 
   Future<void> _testSetCurrentScreen() async {
@@ -814,4 +738,38 @@ class _MyHomePageState extends State<MyHomePage> {
       screenClassOverride: 'Party_Home_Page',
     );
   }
+
+  Future<void> initConnectivity() async {
+    late ConnectivityResult result;
+    // Platform messages may fail, so we use a try/catch PlatformException.
+    try {
+      result = await _connectivity.checkConnectivity();
+    } on PlatformException catch (e) {
+      print(e.toString());
+      return;
+    }
+
+    // If the widget was removed from the tree while the asynchronous platform
+    // message was in flight, we want to discard the reply rather than calling
+    // setState to update our non-existent appearance.
+    if (!mounted) {
+      return Future.value(null);
+    }
+
+    return _updateConnectionStatus(result);
+  }
+
+  Future<void> _updateConnectionStatus(ConnectivityResult result) async {
+
+    setState(() {
+      _connectionStatus = result;
+    });
+  }
+
+  @override
+  void dispose() {
+    _connectivitySubscription.cancel();
+    super.dispose();
+  }
+
 }

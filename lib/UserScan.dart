@@ -1,13 +1,16 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
 import 'package:bouncer/partyStructure.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:top_snackbar_flutter/top_snack_bar.dart';
 
@@ -27,9 +30,10 @@ class _UserScanState extends State<UserScan> {
   Color _mesageColor = Colors.redAccent;
   String _message = "Scan Code";
   QRViewController? controller;
-  late Party party;
   bool flash = false;
-
+  late StreamSubscription<ConnectivityResult> _connectivitySubscription;
+  ConnectivityResult _connectionStatus = ConnectivityResult.none;
+  final Connectivity _connectivity = Connectivity();
   bool _scanning = false;
 
   String generateID(String name){
@@ -235,10 +239,11 @@ class _UserScanState extends State<UserScan> {
 
   @override
   void initState() {
-    party =
-        Party(partyCode: "", partyName: "", guestsInside: [], guestList: []);
-    _testSetCurrentScreen();
     super.initState();
+    initConnectivity();
+    _connectivitySubscription = _connectivity.onConnectivityChanged.listen(_updateConnectionStatus);
+    _testSetCurrentScreen();
+
   }
 
   @override
@@ -255,5 +260,48 @@ class _UserScanState extends State<UserScan> {
   void dispose() {
     controller?.dispose();
     super.dispose();
+  }
+
+  Future<void> initConnectivity() async {
+    late ConnectivityResult result;
+    // Platform messages may fail, so we use a try/catch PlatformException.
+    try {
+      result = await _connectivity.checkConnectivity();
+    } on PlatformException catch (e) {
+      print(e.toString());
+      return;
+    }
+
+    // If the widget was removed from the tree while the asynchronous platform
+    // message was in flight, we want to discard the reply rather than calling
+    // setState to update our non-existent appearance.
+    if (!mounted) {
+      return Future.value(null);
+    }
+
+    return _updateConnectionStatus(result);
+  }
+  Future<void> _updateConnectionStatus(ConnectivityResult result) async {
+
+
+    if(result==ConnectivityResult.none){
+
+      print("no internet");
+
+      setState(() {
+        _message = "No Internet";
+        _mesageColor = Colors.orangeAccent;
+      });
+    }else{
+
+      setState(() {
+        _message = "Scan Code";
+        _mesageColor = Colors.redAccent;
+      });
+
+
+
+    }
+
   }
 }

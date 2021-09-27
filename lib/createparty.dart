@@ -1,8 +1,10 @@
 import 'dart:convert';
 
 import 'package:bouncer/partyStructure.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_performance/firebase_performance.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:proste_bezier_curve/proste_bezier_curve.dart';
@@ -14,7 +16,7 @@ import 'main.dart';
 class CreateParty extends StatefulWidget {
   final FirebaseAnalytics analytics;
 
-  CreateParty( {required this.analytics});
+  CreateParty({required this.analytics});
 
   @override
   _CreatePartyState createState() => _CreatePartyState();
@@ -24,8 +26,7 @@ class _CreatePartyState extends State<CreateParty> {
   bool _reuse = false;
   String _partyName = "";
   String _partyCode = "";
-
-
+  FirebasePerformance _performance = FirebasePerformance.instance;
 
   Future<void> _testSetCurrentScreen() async {
     await widget.analytics.setCurrentScreen(
@@ -39,21 +40,26 @@ class _CreatePartyState extends State<CreateParty> {
     CollectionReference parties =
         FirebaseFirestore.instance.collection('party');
 
+    Future<void> addParty() async {
+      final Trace trace = _performance.newTrace('create_party');
+      await trace.start();
 
-    Future<void> addParty() {
       return parties
           .doc(_partyName)
           .set({
-        'name': _partyName,
-        'password': _partyCode,
-        "invites":0,
-        "scans":0,
-        "numscan":1,
-        "reuse":false
+            'name': _partyName,
+            'password': _partyCode,
+            "invites": 0,
+            "scans": 0,
+            "numscan": 1,
+            "reuse": false
+          })
+          .then((value) async {
 
-      })
-          .then((value) => print("User Added"))
-          .catchError((error) => print("Failed to add user: $error"));
+        await trace.stop();
+
+
+      }).catchError((error) => print("Failed to add user: $error"));
     }
 
     return WillPopScope(
@@ -121,29 +127,27 @@ class _CreatePartyState extends State<CreateParty> {
                               ),
                             ),
                             Padding(
-                              padding: const EdgeInsets.fromLTRB(30,50,30,20),
+                              padding:
+                                  const EdgeInsets.fromLTRB(30, 50, 30, 20),
                               child: TextField(
                                 cursorColor: Colors.redAccent,
                                 decoration: InputDecoration(
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius:
-                                        BorderRadius.all(Radius.circular(25)),
-                                    borderSide: BorderSide(
-                                        color: Colors.redAccent,
-                                        width: 2.0,
-                                        style: BorderStyle.solid),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius:
-                                        BorderRadius.all(Radius.circular(25)),
-                                    borderSide: BorderSide(
-                                        color: Colors.redAccent, width: 2.0),
-                                  ),
-                                  hintText: 'Party Name',
-
-                                  counter: Text("${_partyName.length}/20")
-
-                                ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius:
+                                          BorderRadius.all(Radius.circular(25)),
+                                      borderSide: BorderSide(
+                                          color: Colors.redAccent,
+                                          width: 2.0,
+                                          style: BorderStyle.solid),
+                                    ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius:
+                                          BorderRadius.all(Radius.circular(25)),
+                                      borderSide: BorderSide(
+                                          color: Colors.redAccent, width: 2.0),
+                                    ),
+                                    hintText: 'Party Name',
+                                    counter: Text("${_partyName.length}/20")),
                                 maxLength: 20,
                                 toolbarOptions: ToolbarOptions(),
                                 onChanged: (String name) {
@@ -188,72 +192,86 @@ class _CreatePartyState extends State<CreateParty> {
                               ),
                             ),
                             Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 100,horizontal:80),
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: 100, horizontal: 80),
                                 child: CupertinoButton(
-
-                                  color: Colors.redAccent,
+                                    color: Colors.redAccent,
                                     child: Text(
                                       "Create Party",
-                                      style: TextStyle(fontSize: 15,color: Colors.white),
+                                      style: TextStyle(
+                                          fontSize: 15, color: Colors.white),
                                     ),
                                     onPressed: () async {
 
+                                      var connectivityResult = await (Connectivity().checkConnectivity());
+                                      if (connectivityResult == ConnectivityResult.none) {
 
-                                    if(_partyName.replaceAll(" ", "")==""||_partyCode.replaceAll(" ", "")==""){
-
-                                      showTopSnackBar(
-                                        context,
-                                        CustomSnackBar.error(
-                                          message: _partyName.replaceAll(" ", "")==""?"Create A Party Name":"Create A Party Code",
-                                        ),
-                                      );
-
-
-                                    }else{
-
-                                      FirebaseFirestore.instance
-                                          .collection('party')
-                                          .doc(_partyName)
-                                          .get()
-                                          .then((DocumentSnapshot
-                                      documentSnapshot) {
-                                        if (documentSnapshot.exists) {
-
-                                          showTopSnackBar(
-                                            context,
-
-                                            CustomSnackBar.error(
-                                              message: "Party Name Already Used",
-                                            ),
-                                          );
-
-                                        } else {
+                                        showTopSnackBar(
+                                          context,
+                                          CustomSnackBar.error(
+                                            message: "No Internet Connection",
+                                          ),
+                                        );
 
 
-
-                                          addParty();
-
-                                          widget.analytics.logEvent(name: "party_created");
-
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                                builder: (context) => MyHomePage(
-                                                  partyCode: _partyCode,
-                                                  partyName: _partyName,
-                                                  analytics: widget.analytics,
-                                                )),
-                                          );
-
-                                        }
-                                      });
+                                      }else{
 
 
-                                    }
-                                      
+                                      if (_partyName.replaceAll(" ", "") ==
+                                              "" ||
+                                          _partyCode.replaceAll(" ", "") ==
+                                              "") {
+                                        showTopSnackBar(
+                                          context,
+                                          CustomSnackBar.error(
+                                            message: _partyName.replaceAll(
+                                                        " ", "") ==
+                                                    ""
+                                                ? "Create A Party Name"
+                                                : "Create A Party Code",
+                                          ),
+                                        );
 
-                                    })),
+                                        widget.analytics.logEvent(
+                                            name: "party_created",
+                                            parameters: {"sucsess": false});
+                                      } else {
+                                        FirebaseFirestore.instance
+                                            .collection('party')
+                                            .doc(_partyName)
+                                            .get()
+                                            .then((DocumentSnapshot
+                                                documentSnapshot) {
+                                          if (documentSnapshot.exists) {
+                                            showTopSnackBar(
+                                              context,
+                                              CustomSnackBar.error(
+                                                message:
+                                                    "Party Name Already Used",
+                                              ),
+                                            );
+                                          } else {
+                                            addParty();
+
+                                            widget.analytics.logEvent(
+                                                name: "party_created",
+                                                parameters: {"sucsess": true});
+
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      MyHomePage(
+                                                        partyCode: _partyCode,
+                                                        partyName: _partyName,
+                                                        analytics:
+                                                            widget.analytics,
+                                                      )),
+                                            );
+                                          }
+                                        });
+                                      }
+                                    }})),
                           ],
                         ),
                       ),

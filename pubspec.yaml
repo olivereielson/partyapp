@@ -52,6 +52,7 @@ dependencies:
   uni_links:
   firebase_crashlytics:
   firebase_performance:
+  connectivity_plus:
 
 
 dev_dependencies:

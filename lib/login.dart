@@ -4,6 +4,7 @@ import 'package:bouncer/User.dart';
 import 'package:bouncer/createparty.dart';
 import 'package:bouncer/partyStructure.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/cupertino.dart';
@@ -180,6 +181,21 @@ class _LoginPageState extends State<LoginPage> {
                                   fontWeight: FontWeight.bold),
                             ),
                             onPressed: () async {
+
+
+                              var connectivityResult = await (Connectivity().checkConnectivity());
+                              if (connectivityResult == ConnectivityResult.none) {
+
+                                showTopSnackBar(
+                                  context,
+                                  CustomSnackBar.error(
+                                    message: "No Internet Connection",
+                                  ),
+                                );
+
+
+                              }else{
+
                               if (_partyCode != "" && _partyName != "") {
                                 FirebaseFirestore.instance
                                     .collection('party')
@@ -234,7 +250,7 @@ class _LoginPageState extends State<LoginPage> {
                                   ),
                                 );
 
-                              }
+                              }}
                             }),
                       ),
                       Spacer(),

@@ -226,6 +226,11 @@ class _UserpageState extends State<Userpage>
             _controller.forward();
           }
         });
+
+        widget.analytics.logEvent(name: "user_card_clicked",parameters: {
+          "expanded":_expanded==index?true:false
+        });
+
       },
       onLongPress: () {
         deleteCard(index);
