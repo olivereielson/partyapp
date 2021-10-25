@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:bouncer/User.dart';
 import 'package:bouncer/UserScan.dart';
 import 'package:bouncer/login.dart';
+import 'package:bouncer/search.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_performance/firebase_performance.dart';
@@ -56,7 +57,6 @@ class _rootScreenState extends State<rootScreen> {
 
   }
 
-
   void _handleIncomingLinks() {
     if (!kIsWeb) {
       // It will handle app links while the app is already started - be it in
@@ -86,7 +86,6 @@ class _rootScreenState extends State<rootScreen> {
       });
     }
   }
-
 
   Future<void> _handleInitialUri() async {
     // In this example app this is an almost useless guard, but it is here to
@@ -118,11 +117,11 @@ class _rootScreenState extends State<rootScreen> {
     }
   }
 
-
   List<Widget> _buildScreens() {
     return [
       Userpage(analytics: widget.analytics),
       LoginPage(analytics: widget.analytics),
+      partySearch()
     ];
   }
 
@@ -142,6 +141,17 @@ class _rootScreenState extends State<rootScreen> {
         activeColorPrimary: CupertinoColors.white,
         inactiveColorPrimary: CupertinoColors.systemGrey,
       ),
+
+      PersistentBottomNavBarItem(
+        icon: Icon(
+          CupertinoIcons.search,
+        ),
+        title: ("Search"),
+        activeColorPrimary: CupertinoColors.white,
+        inactiveColorPrimary: CupertinoColors.systemGrey,
+      ),
+
+
     ];
   }
 
@@ -278,5 +288,4 @@ class _rootScreenState extends State<rootScreen> {
   }
 }
 
-///Users/olivereielson/Documents/GitHub/partyapp/ios/Pods/FirebaseCrashlytics/upload-symbols -gsp /Users/olivereielson/Documents/GitHub/partyapp/ios/Runner/GoogleService-Info.plist -p ios /path/to/dSYMs
 

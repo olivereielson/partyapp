@@ -53,6 +53,8 @@ dependencies:
   firebase_crashlytics:
   firebase_performance:
   connectivity_plus:
+  pull_to_refresh:
+  custom_refresh_indicator:
 
 
 dev_dependencies:

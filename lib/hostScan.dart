@@ -83,68 +83,56 @@ class _HostScanState extends State<HostScan> {
     await trace.start();
 
     party.get().then((DocumentSnapshot documentSnapshot) async {
-
-
-      try {
-        if (documentSnapshot.get(result.code) == 0) {
-          _messageColor = Colors.orangeAccent;
-          _message = "Reused Code";
-          widget.analytics.logEvent(
-            name: 'invite_scanned',
-            parameters: <String, dynamic>{
-              'outcome': 'reused',
-            },
-          );
-        }
-        if (documentSnapshot.get(result.code) != 0 && documentSnapshot.get(result.code) != null) {
-
-
-          if (documentSnapshot.get(result.code) > 1) {
-            party.set({result.code: documentSnapshot.get(result.code) - 1}, SetOptions(merge: true));
-          } else {
-            party.set({result.code: 0}, SetOptions(merge: true));
-          }
-
-          party.set({"scans": documentSnapshot.get("scans") + 1},
-              SetOptions(merge: true));
-
-          setState(() {
-            _messageColor = Colors.green;
-            _message = "Approved";
-            widget.analytics.logEvent(
-              name: 'invite_scanned',
-              parameters: <String, dynamic>{
-                'outcome': 'approved',
-              },
-            );
-          });
-        }
-
-
-
-      } catch (e,s) {
-
-
-        if(e.toString()=="Bad state: field does not exist within the DocumentSnapshotPlatform"){
-          setState(() {
+      if (documentSnapshot.data().toString().contains(result.code)) {
+        try {
+          if (documentSnapshot.get(result.code) == 0) {
             _messageColor = Colors.orangeAccent;
-            _message = "Rejected";
+            _message = "Reused Code";
             widget.analytics.logEvent(
               name: 'invite_scanned',
               parameters: <String, dynamic>{
-                'outcome': 'rejected',
+                'outcome': 'reused',
               },
             );
-          });
-        }else{
+          }
+          if (documentSnapshot.get(result.code) != 0 && documentSnapshot.get(result.code) != null) {
+            if (documentSnapshot.get(result.code) > 1) {
+              party.set({result.code: documentSnapshot.get(result.code) - 1},
+                  SetOptions(merge: true));
+            } else {
+              party.set({result.code: 0}, SetOptions(merge: true));
+            }
 
+            party.set({"scans": documentSnapshot.get("scans") + 1},
+                SetOptions(merge: true));
+
+            setState(() {
+              _messageColor = Colors.green;
+              _message = "Approved";
+              widget.analytics.logEvent(
+                name: 'invite_scanned',
+                parameters: <String, dynamic>{
+                  'outcome': 'approved',
+                },
+              );
+            });
+          }
+        } catch (e, s) {
           _messageColor = Colors.orangeAccent;
           _message = "Unknown Error";
           await FirebaseCrashlytics.instance.recordError(e, s, reason: 'Host Scan Failed');
-
         }
-
-
+      } else {
+        setState(() {
+          _messageColor = Colors.orangeAccent;
+          _message = "Rejected";
+          widget.analytics.logEvent(
+            name: 'invite_scanned',
+            parameters: <String, dynamic>{
+              'outcome': 'rejected',
+            },
+          );
+        });
       }
     });
     await trace.stop();
@@ -170,7 +158,8 @@ class _HostScanState extends State<HostScan> {
 
   @override
   Widget build(BuildContext context) {
-    DocumentReference party = FirebaseFirestore.instance.collection('party').doc(widget.partyName);
+    DocumentReference party =
+        FirebaseFirestore.instance.collection('party').doc(widget.partyName);
     return WillPopScope(
         onWillPop: () async => false,
         child: Scaffold(
@@ -198,78 +187,79 @@ class _HostScanState extends State<HostScan> {
                         bottomLeft: const Radius.circular(40.0),
                         bottomRight: const Radius.circular(40.0),
                       )),
-                  child:          Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    IconButton(
-                        onPressed: () {
-                          Navigator.pop(context, "0");
-                        },
-                        icon: Icon(
-                          Icons.arrow_back_outlined,
-                          size: 30,
-                        )),
-                    Text(
-                      _message,
-                      style: TextStyle(fontSize: 30),
-                    ),
-                    SafeArea(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          IconButton(
-                              onPressed: () async {
-                                await controller!.flipCamera();
-                                await controller!.resumeCamera();
-                                CameraFacing cf =
-                                await controller!.getCameraInfo();
-                                widget.analytics.logEvent(
-                                  name: 'camera_flipped',
-                                  parameters: <String, dynamic>{
-                                    'front':
-                                    cf == CameraFacing.back ? true : false,
-                                  },
-                                );
-                              },
-                              icon: Icon(Icons.flip_camera_ios)),
-                          IconButton(
-                              onPressed: () async {
-                                if (await controller!.getCameraInfo() ==
-                                    CameraFacing.back) {
-                                  await controller!.toggleFlash();
-                                  widget.analytics.logEvent(
-                                    name: 'flash_toggled',
-                                    parameters: <String, dynamic>{
-                                      'flash': flash,
-                                      'success': true
-                                    },
-                                  );
-                                } else {
-                                  ScaffoldMessenger.of(context).showSnackBar(warning(
-                                      "Flash can only be used with front camera"));
-                                  widget.analytics.logEvent(
-                                    name: 'flash_toggled',
-                                    parameters: <String, dynamic>{
-                                      'flash': flash,
-                                      'success': false
-                                    },
-                                  );
-                                }
-
-                                flash = (await controller!.getFlashStatus())!;
-                                setState(() {});
-                              },
-                              icon: Icon(flash
-                                  ? Icons.flashlight_on
-                                  : Icons.flashlight_off)),
-                        ],
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      IconButton(
+                          onPressed: () {
+                            Navigator.pop(context, "0");
+                          },
+                          icon: Icon(
+                            Icons.arrow_back_outlined,
+                            size: 30,
+                          )),
+                      Text(
+                        _message,
+                        style: TextStyle(fontSize: 30),
                       ),
-                    ),
-                  ],
-                ),
+                      SafeArea(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            IconButton(
+                                onPressed: () async {
+                                  await controller!.flipCamera();
+                                  await controller!.resumeCamera();
+                                  CameraFacing cf =
+                                      await controller!.getCameraInfo();
+                                  widget.analytics.logEvent(
+                                    name: 'camera_flipped',
+                                    parameters: <String, dynamic>{
+                                      'front': cf == CameraFacing.back
+                                          ? true
+                                          : false,
+                                    },
+                                  );
+                                },
+                                icon: Icon(Icons.flip_camera_ios)),
+                            IconButton(
+                                onPressed: () async {
+                                  if (await controller!.getCameraInfo() ==
+                                      CameraFacing.back) {
+                                    await controller!.toggleFlash();
+                                    widget.analytics.logEvent(
+                                      name: 'flash_toggled',
+                                      parameters: <String, dynamic>{
+                                        'flash': flash,
+                                        'success': true
+                                      },
+                                    );
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                        warning(
+                                            "Flash can only be used with front camera"));
+                                    widget.analytics.logEvent(
+                                      name: 'flash_toggled',
+                                      parameters: <String, dynamic>{
+                                        'flash': flash,
+                                        'success': false
+                                      },
+                                    );
+                                  }
 
-              ),
+                                  flash = (await controller!.getFlashStatus())!;
+                                  setState(() {});
+                                },
+                                icon: Icon(flash
+                                    ? Icons.flashlight_on
+                                    : Icons.flashlight_off)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ],
           ),
@@ -282,10 +272,9 @@ class _HostScanState extends State<HostScan> {
     super.initState();
     initConnectivity();
 
-    _connectivitySubscription = _connectivity.onConnectivityChanged.listen(_updateConnectionStatus);
+    _connectivitySubscription =
+        _connectivity.onConnectivityChanged.listen(_updateConnectionStatus);
   }
-
-
 
   Future<void> _testSetCurrentScreen() async {
     await widget.analytics.setCurrentScreen(
@@ -299,7 +288,6 @@ class _HostScanState extends State<HostScan> {
     _connectivitySubscription.cancel();
     super.dispose();
   }
-
 
   Future<void> initConnectivity() async {
     late ConnectivityResult result;
@@ -320,28 +308,20 @@ class _HostScanState extends State<HostScan> {
 
     return _updateConnectionStatus(result);
   }
+
   Future<void> _updateConnectionStatus(ConnectivityResult result) async {
-
-
-    if(result==ConnectivityResult.none){
-
+    if (result == ConnectivityResult.none) {
       print("no internet");
 
       setState(() {
         _message = "No Internet";
         _messageColor = Colors.orangeAccent;
       });
-    }else{
-
+    } else {
       setState(() {
         _message = "Scan Code";
         _messageColor = Colors.redAccent;
       });
-
-
-
     }
-
   }
-
 }

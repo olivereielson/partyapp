@@ -7,6 +7,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_performance/firebase_performance.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:proste_bezier_curve/proste_bezier_curve.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:top_snackbar_flutter/custom_snack_bar.dart';
@@ -131,6 +132,9 @@ class _CreatePartyState extends State<CreateParty> {
                                   const EdgeInsets.fromLTRB(30, 50, 30, 20),
                               child: TextField(
                                 cursorColor: Colors.redAccent,
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.deny(RegExp('[ ]')),
+                                  ],
                                 decoration: InputDecoration(
                                     focusedBorder: OutlineInputBorder(
                                       borderRadius:
@@ -156,6 +160,12 @@ class _CreatePartyState extends State<CreateParty> {
                                   });
                                 },
                                 onSubmitted: (String name) {
+
+                                  if(name.substring(name.length)==""){
+
+
+                                  }
+
                                   _partyName = name;
                                 },
                               ),

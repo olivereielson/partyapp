@@ -5,7 +5,9 @@ import 'package:bouncer/UserScan.dart';
 import 'package:bouncer/login.dart';
 import 'package:bouncer/search.dart';
 import 'package:card_swiper/card_swiper.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/cupertino.dart';
@@ -17,11 +19,13 @@ import 'package:flutter/widgets.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:persistent_bottom_nav_bar/persistent-tab-view.dart';
 import 'package:proste_bezier_curve/proste_bezier_curve.dart';
+import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'headers.dart';
+import 'package:custom_refresh_indicator/custom_refresh_indicator.dart';
 
 class Userpage extends StatefulWidget {
   final FirebaseAnalytics analytics;
@@ -40,6 +44,8 @@ class _UserpageState extends State<Userpage>
   late Animation<double> animation;
   late AnimationController _controller;
   PageController pc = PageController(initialPage: 0);
+  RefreshController _refreshController =
+      RefreshController(initialRefresh: false);
 
   //List<bool> expanded = [];
   int _expanded = -1;
@@ -176,8 +182,6 @@ class _UserpageState extends State<Userpage>
   Widget button() {
     return IconButton(
         onPressed: () async {
-
-
           //FirebaseCrashlytics.instance.crash();
 
           String id = await pushNewScreen(
@@ -227,10 +231,9 @@ class _UserpageState extends State<Userpage>
           }
         });
 
-        widget.analytics.logEvent(name: "user_card_clicked",parameters: {
-          "expanded":_expanded==index?true:false
-        });
-
+        widget.analytics.logEvent(
+            name: "user_card_clicked",
+            parameters: {"expanded": _expanded == index ? true : false});
       },
       onLongPress: () {
         deleteCard(index);
@@ -316,42 +319,76 @@ class _UserpageState extends State<Userpage>
     );
   }
 
+  Future<void> checkPending() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    if (prefs.containsKey("requests")) {
+      List<String>? saved = prefs.getStringList("requests");
+
+      saved!.toSet().toList();
+
+      for (String name in saved) {
+        print(name.split(",")[1]);
+
+        FirebaseFirestore.instance
+            .collection('accepted')
+            .doc(name.split(",")[0])
+            .get()
+            .then((DocumentSnapshot documentSnapshot) async {
+          try {
+            print(name.split(",")[1]);
+            if (prefs.containsKey("wallet")) {
+              List<String>? wallet = prefs.getStringList("wallet");
+              wallet!.add(documentSnapshot.get(name.split(",")[1]));
+              prefs.setStringList("wallet", wallet);
+              setState(() {});
+
+              await FirebaseFirestore.instance
+                  .collection('accepted')
+                  .doc(name.split(",")[0])
+                  .set({name.split(",")[1]: FieldValue.delete()});
+            } else {
+              prefs.setStringList("wallet", []);
+            }
+          } catch (e) {}
+        });
+      }
+      prefs.setStringList("requests", []);
+    } else {
+      prefs.setStringList("requests", []);
+    }
+
+    _refreshController.refreshCompleted();
+  }
+
   Future<SharedPreferences> pref() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     return prefs;
   }
-
-
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
       child: Scaffold(
-          resizeToAvoidBottomInset: false,
+          //resizeToAvoidBottomInset: false,
 
-          body: PageView(
-            scrollDirection: Axis.horizontal,
-            physics: NeverScrollableScrollPhysics(),
-            controller: pc,
-            children: [
-              NestedScrollView(
-                headerSliverBuilder:
-                    (BuildContext context, bool innerBoxIsScrolled) {
-                  return <Widget>[
-                    SliverPersistentHeader(
-                      pinned: true,
-                      floating: true,
-                      delegate: MyDynamicHeader(button()),
-                    ),
-                  ];
-                },
-                body: savedInvitese(),
-              ),
-          //    partySearch(),
-              LoginPage(analytics: widget.analytics),
-            ],
-          )),
+          body: NestedScrollView(
+        headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
+          return <Widget>[
+            SliverPersistentHeader(
+              pinned: true,
+              floating: true,
+              delegate: MyDynamicHeader(button()),
+            ),
+          ];
+        },
+        body: SmartRefresher(
+            controller: _refreshController,
+            onRefresh: checkPending,
+            header: WaterDropHeader(),
+            child: savedInvitese()),
+      )),
     );
   }
 

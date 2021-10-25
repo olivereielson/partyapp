@@ -29,7 +29,7 @@ class _party_settingsState extends State<party_settings> {
   bool _reusedCodes = false;
 
   Future<bool> delete_confermation() async {
-  bool test= await   showDialog(
+    bool test = await showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: Text("Delete Party?"),
@@ -42,7 +42,7 @@ class _party_settingsState extends State<party_settings> {
                 style: TextStyle(color: Colors.white),
               ),
               onPressed: () {
-                Navigator.pop(context,false);
+                Navigator.pop(context, false);
               }),
           CupertinoButton(
               child: Text(
@@ -50,21 +50,17 @@ class _party_settingsState extends State<party_settings> {
                 style: TextStyle(color: Colors.redAccent),
               ),
               onPressed: () async {
-
-                Navigator.pop(context,true);
-
+                Navigator.pop(context, true);
 
                 //Navigator.of(context).popUntil(ModalRoute.withName('/my-target-screen'));
 
-          
-               // FirebaseFirestore.instance.collection('party').doc(widget.partyName).delete().then((value) {});
+                // FirebaseFirestore.instance.collection('party').doc(widget.partyName).delete().then((value) {});
               }),
         ],
       ),
     );
 
-  return test;
-
+    return test;
   }
 
   void erase_confermation() {
@@ -108,8 +104,6 @@ class _party_settingsState extends State<party_settings> {
   }
 
   // /Users/olivereielson/Documents/GitHub/partyapp/ios/Pods/FirebaseCrashlytics/upload-symbols -gsp /Users/olivereielson/Documents/GitHub/partyapp/ios/Runner/GoogleService-Info.plist -p ios /path/to/dSYMs
-
-
 
   Widget reuseWidhet() {
     return Padding(
@@ -196,7 +190,7 @@ class _party_settingsState extends State<party_settings> {
                 ),
                 onSelectedItemChanged: (value) {
                   setState(() {
-                    widget.reuse = value+1;
+                    widget.reuse = value + 1;
                   });
                 },
               ),
@@ -260,7 +254,8 @@ class _party_settingsState extends State<party_settings> {
                       FirebaseFirestore.instance
                           .collection('party')
                           .doc(widget.partyName)
-                          .set({"numscan": widget.reuse}, SetOptions(merge: true));
+                          .set({"numscan": widget.reuse},
+                              SetOptions(merge: true));
 
                       widget.analytics.logEvent(
                           name: "reuse_num_changed",
@@ -309,16 +304,11 @@ class _party_settingsState extends State<party_settings> {
                   padding: const EdgeInsets.fromLTRB(20, 30, 20, 30),
                   child: GestureDetector(
                     onTap: () async {
-                     erase_confermation();
+                      erase_confermation();
 
                       widget.analytics.logEvent(
-                        name: "party_reset",);
-
-
-
-
-
-
+                        name: "party_reset",
+                      );
                     },
                     child: Row(
                       children: [
@@ -355,34 +345,32 @@ class _party_settingsState extends State<party_settings> {
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 20),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 0, horizontal: 20),
                   child: GestureDetector(
                     onTap: () async {
-                      bool test= await delete_confermation();
+                      bool test = await delete_confermation();
 
-                      if(test){
-
-
-                        FirebaseFirestore.instance.collection('party').doc(widget.partyName).delete().then((value){
-
-
+                      if (test) {
+                        FirebaseFirestore.instance
+                            .collection('party')
+                            .doc(widget.partyName)
+                            .delete()
+                            .then((value) {
                           pushNewScreen(
                             context,
                             screen: LoginPage(analytics: widget.analytics),
-                            withNavBar: true, // OPTIONAL VALUE. True by default.
-                            pageTransitionAnimation: PageTransitionAnimation.cupertino,
+                            withNavBar: true,
+                            // OPTIONAL VALUE. True by default.
+                            pageTransitionAnimation:
+                                PageTransitionAnimation.cupertino,
                           );
-
-
                         });
-
-
                       }
 
                       widget.analytics.logEvent(
-                        name: "party_delete_clicked",parameters: {
-                          "deleted":test
-                      });
+                          name: "party_delete_clicked",
+                          parameters: {"deleted": test});
                     },
                     child: Row(
                       children: [
@@ -419,18 +407,20 @@ class _party_settingsState extends State<party_settings> {
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 20),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 30, horizontal: 20),
                   child: GestureDetector(
                     onTap: () {
-
                       widget.analytics.logEvent(
-                        name: "party_logged_out",);
+                        name: "party_logged_out",
+                      );
 
                       pushNewScreen(
                         context,
                         screen: LoginPage(analytics: widget.analytics),
-                        withNavBar: true, // OPTIONAL VALUE. True by default.
-                        pageTransitionAnimation: PageTransitionAnimation.cupertino,
+                        withNavBar: true,
+                        pageTransitionAnimation:
+                            PageTransitionAnimation.cupertino,
                       );
                     },
                     child: Row(
@@ -491,23 +481,23 @@ class _party_settingsState extends State<party_settings> {
                     color: Colors.grey.withOpacity(0.1),
                     child: SafeArea(
                         child: Column(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.all(15.0),
-                              child: Text(
-                                "Credits",
-                                style: TextStyle(
-                                    fontSize: 15, color: Colors.white.withOpacity(0)),
-                              ),
-                            ),
-                          ],
-                        )),
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(15.0),
+                          child: Text(
+                            "Credits",
+                            style: TextStyle(
+                                fontSize: 15,
+                                color: Colors.white.withOpacity(0)),
+                          ),
+                        ),
+                      ],
+                    )),
                   ),
                 ),
               ),
             ),
-
           ],
         ),
       ),
@@ -518,7 +508,6 @@ class _party_settingsState extends State<party_settings> {
   void initState() {
     _testSetCurrentScreen();
     super.initState();
-
   }
 
   Future<void> _testSetCurrentScreen() async {

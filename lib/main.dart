@@ -9,6 +9,8 @@ import 'package:bouncer/login.dart';
 import 'package:bouncer/partySettings.dart';
 import 'package:bouncer/partyStructure.dart';
 import 'package:bouncer/rootScreen.dart';
+import 'package:card_swiper/card_swiper.dart';
+import 'package:card_swiper/card_swiper.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
@@ -31,9 +33,12 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:share/share.dart';
 import 'package:share_files_and_screenshot_widgets_plus/share_files_and_screenshot_widgets_plus.dart';
+import 'package:top_snackbar_flutter/custom_snack_bar.dart';
+import 'package:top_snackbar_flutter/top_snack_bar.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 
 import 'User.dart';
+import 'createparty.dart';
 import 'hostScan.dart';
 
 Future<void> main() async {
@@ -65,6 +70,12 @@ class MyApp extends StatelessWidget {
       navigatorObservers: [
         FirebaseAnalyticsObserver(analytics: analytics),
       ],
+      routes: {
+        'login': (context) => LoginPage(analytics: analytics),
+        'create': (context) => CreateParty(
+              analytics: analytics,
+            ),
+      },
       home: rootScreen(
         analytics: analytics,
       ),
@@ -104,14 +115,21 @@ class _MyHomePageState extends State<MyHomePage> {
   final Connectivity _connectivity = Connectivity();
   late StreamSubscription<ConnectivityResult> _connectivitySubscription;
 
-
-
   GlobalKey keyButton = GlobalKey();
   GlobalKey keyButton1 = GlobalKey();
   GlobalKey keyButton2 = GlobalKey();
   GlobalKey keyButton3 = GlobalKey();
   GlobalKey keyButton4 = GlobalKey();
   GlobalKey keyButton5 = GlobalKey();
+
+  success(String message) {
+    showTopSnackBar(
+      context,
+      CustomSnackBar.success(
+        message: message,
+      ),
+    );
+  }
 
   SnackBar warning(String warning) {
     return SnackBar(
@@ -440,6 +458,42 @@ class _MyHomePageState extends State<MyHomePage> {
       ..show();
   }
 
+  void acceptInvite(String name) {
+    try {
+      String id = generateID();
+      FirebaseFirestore.instance
+          .collection('accepted')
+          .doc(widget.partyName)
+          .set({name: id}, SetOptions(merge: true));
+      FirebaseFirestore.instance
+          .collection('requests')
+          .doc(widget.partyName)
+          .set({name.split(":")[0]: FieldValue.delete()},
+              SetOptions(merge: true));
+      FirebaseFirestore.instance
+          .collection('party')
+          .doc(widget.partyName)
+          .set({id: _reuse}, SetOptions(merge: true));
+
+      success("Invite Accepted");
+    } catch (exeption) {
+      warning("Unknown Error Occurred");
+    }
+  }
+
+  void rejectInvite(String name) {
+    try {
+      FirebaseFirestore.instance
+          .collection('requests')
+          .doc(widget.partyName)
+          .set({name.split(":")[0]: FieldValue.delete()},
+              SetOptions(merge: true));
+      warning("Request Rejected");
+    } catch (e) {
+      warning("Unknown Error Occurred");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     DocumentReference party =
@@ -496,76 +550,121 @@ class _MyHomePageState extends State<MyHomePage> {
             children: [
               Expanded(flex: 1, child: Container()),
               Expanded(
-                flex: 4,
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 0),
-                  child: Container(
-                    key: keyButton,
-                    width: MediaQuery.of(context).size.width - 50,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: Colors.redAccent, width: 3),
+                  flex: 4,
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: Colors.redAccent, width: 3),
+                      ),
+                      child: _connectionStatus == ConnectivityResult.none
+                          ? Center(child: Text("No Internet Connection"))
+                          : StreamBuilder(
+                              stream: FirebaseFirestore.instance
+                                  .collection('requests')
+                                  .doc(widget.partyName)
+                                  .snapshots(),
+                              builder: (context,
+                                  AsyncSnapshot<DocumentSnapshot> snapshot) {
+                                if (snapshot.hasData) {
+                                  if (snapshot.data!.data().toString().length >
+                                      2) {
+                                    List<String> Data = snapshot.data!
+                                        .data()
+                                        .toString()
+                                        .substring(
+                                            1,
+                                            snapshot.data!
+                                                    .data()
+                                                    .toString()
+                                                    .length -
+                                                1)
+                                        .split(",");
+                                    return Container(
+                                      height: 210,
+                                      width: MediaQuery.of(context).size.width,
+                                      child: Swiper(
+                                        itemBuilder:
+                                            (BuildContext context, int index) {
+                                          return Center(
+                                              child: Padding(
+                                            padding: const EdgeInsets.all(10.0),
+                                            child: Row(
+                                              children: [
+                                                Text(
+                                                  Data[index].split(":")[0],
+                                                  style: TextStyle(
+                                                      fontSize: 30,
+                                                      fontWeight:
+                                                          FontWeight.bold),
+                                                ),
+                                                Spacer(),
+                                                IconButton(
+                                                    onPressed: () {
+                                                      rejectInvite(Data[index]
+                                                          .split(":")[0]);
+                                                    },
+                                                    icon: Icon(
+                                                      Icons.cancel,
+                                                      color: Colors.redAccent,
+                                                      size: 50,
+                                                    )),
+                                                Padding(
+                                                  padding: const EdgeInsets.all(
+                                                      20.0),
+                                                  child: IconButton(
+                                                      onPressed: () {
+                                                        acceptInvite(Data[index]
+                                                            .split(":")[0]);
+                                                      },
+                                                      icon: Icon(
+                                                        Icons.check_circle,
+                                                        color: Colors.green,
+                                                        size: 50,
+                                                      )),
+                                                )
+                                              ],
+                                            ),
+                                          ));
+                                        },
+                                        itemCount: Data.length,
+                                        containerHeight:
+                                            MediaQuery.of(context).size.width,
+                                        containerWidth: 200,
+                                        loop: true,
+                                        onTap: (int) {
+                                          print(int);
+                                        },
+                                        pagination: new SwiperPagination(
+                                            margin: new EdgeInsets.all(0.0),
+                                            builder:
+                                                new DotSwiperPaginationBuilder(
+                                                    color: Colors.white30,
+                                                    activeColor: Colors.white,
+                                                    size: 10.0,
+                                                    activeSize: 15.0)),
+                                        control: new SwiperControl(
+                                          color: Colors.transparent,
+                                          disableColor: Colors.transparent,
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                  return Container(
+                                    height: 210,
+                                    width: MediaQuery.of(context).size.width,
+                                    child: Center(
+                                      child: Text("No Invite Requests",style: TextStyle(fontWeight: FontWeight.bold,fontSize: 20),),
+                                    ),
+                                  );
+                                }
 
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.redAccent.withOpacity(00),
-                          spreadRadius: 2,
-                          blurRadius: 7,
-                          offset: Offset(0, 3), // changes position of shadow
-                        ),
-                      ],
-                      // color: Colors.redAccent,
-                    ),
-                    child: Stack(
-                      children: [
-                        Positioned(
-                            top: 15,
-                            left: 15,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(10),
-                                color: Colors.grey.withOpacity(0.1),
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Image.asset(
-                                  "assets/logo_white.png",
-                                  width: 20,
-                                  color: Colors.redAccent.withOpacity(1),
-                                ),
-                              ),
-                            )),
-                        Positioned(
-                          child: IconButton(
-                            key: keyButton2,
-                            icon: Icon(CupertinoIcons.share),
-                            onPressed: () {
-                              shareCode(party);
-                              widget.analytics.logEvent(
-                                name: 'invite_sent',
-                              );
-                            },
-                          ),
-                          top: 5,
-                          right: 5,
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.all(30.0),
-                          child: Center(
-                            child: QrImage(
-                              size: 200,
-                              data:
-                                  "${widget.partyName},${widget.partyCode},$_reuse",
-                              foregroundColor: Colors.white,
-                              version: QrVersions.auto,
+                                return Text("Loading");
+                              },
                             ),
-                          ),
-                        ),
-                      ],
                     ),
-                  ),
-                ),
-              ),
+                  )),
               Expanded(flex: 2, child: Container()),
               Expanded(
                 flex: 4,
@@ -586,135 +685,144 @@ class _MyHomePageState extends State<MyHomePage> {
                   child: Padding(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 20, vertical: 10),
-                      child:_connectionStatus==ConnectivityResult.none?Center(child: Text("No Internet Connection")):StreamBuilder<DocumentSnapshot>(
-                          stream: FirebaseFirestore.instance
-                              .collection('party')
-                              .doc(widget.partyName)
-                              .snapshots(),
-                          key: keyButton3,
-                          builder: (context,
-                              AsyncSnapshot<DocumentSnapshot> snapshot) {
-                            if (snapshot.hasError) {
-                              return Center(
-                                  child: Text('Something went wrong'));
-                            }
+                      child: _connectionStatus == ConnectivityResult.none
+                          ? Center(child: Text("No Internet Connection"))
+                          : StreamBuilder<DocumentSnapshot>(
+                              stream: FirebaseFirestore.instance
+                                  .collection('party')
+                                  .doc(widget.partyName)
+                                  .snapshots(),
+                              key: keyButton3,
+                              builder: (context,
+                                  AsyncSnapshot<DocumentSnapshot> snapshot) {
+                                if (snapshot.hasError) {
+                                  return Center(
+                                      child: Text('Something went wrong'));
+                                }
 
-                            if (snapshot.connectionState ==
-                                ConnectionState.waiting) {
-                              return Center(child: Text("Loading"));
-                            }
+                                if (snapshot.connectionState ==
+                                    ConnectionState.waiting) {
+                                  return Center(child: Text("Loading"));
+                                }
 
-                            return Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
+                                return Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 0, vertical: 20),
+                                          child: Text(
+                                            "Party Info",
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 30),
+                                          ),
+                                        ),
+                                        IconButton(
+                                            onPressed: () async {
+                                              _reuse = await Navigator.push(
+                                                  context,
+                                                  PageTransition(
+                                                      type: PageTransitionType
+                                                          .fade,
+                                                      child: party_settings(
+                                                        widget.analytics,
+                                                        partyName:
+                                                            widget.partyName,
+                                                        partyCode:
+                                                            widget.partyCode,
+                                                        reuse: _reuse,
+                                                      )));
+
+                                              if (_reuse == -1) {
+                                                Navigator.pop(context);
+                                              }
+
+                                              setState(() {});
+                                            },
+                                            key: keyButton4,
+                                            icon: Icon(
+                                              Icons.settings,
+                                              color: Colors.white,
+                                            ))
+                                      ],
+                                    ),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          "Invitations Sent",
+                                          style: TextStyle(
+                                              fontSize: 20,
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                        Text(
+                                          snapshot.data!
+                                              .get("invites")
+                                              .toString(),
+                                          style: TextStyle(
+                                              fontSize: 20,
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                      ],
+                                    ),
                                     Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 0, vertical: 20),
-                                      child: Text(
-                                        "Party Info",
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 30),
+                                      padding: const EdgeInsets.only(
+                                          bottom: 20, top: 20),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(
+                                            "People Inside",
+                                            style: TextStyle(
+                                                fontSize: 20,
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.bold),
+                                          ),
+                                          Text(
+                                            snapshot.data!
+                                                .get("scans")
+                                                .toString(),
+                                            style: TextStyle(
+                                                fontSize: 20,
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.bold),
+                                          ),
+                                        ],
                                       ),
                                     ),
-                                    IconButton(
-                                        onPressed: () async {
-                                          _reuse = await Navigator.push(
-                                              context,
-                                              PageTransition(
-                                                  type: PageTransitionType.fade,
-                                                  child: party_settings(
-                                                    widget.analytics,
-                                                    partyName: widget.partyName,
-                                                    partyCode: widget.partyCode,
-                                                    reuse: _reuse,
-                                                  )));
-
-                                          if (_reuse == -1) {
-                                            Navigator.pop(context);
-                                          }
-
-                                          setState(() {});
-                                        },
-                                        key: keyButton4,
-                                        icon: Icon(
-                                          Icons.settings,
-                                          color: Colors.white,
-                                        ))
-                                  ],
-                                ),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      "Invitations Sent",
-                                      style: TextStyle(
-                                          fontSize: 20,
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                    Text(
-                                      snapshot.data!.get("invites").toString(),
-                                      style: TextStyle(
-                                          fontSize: 20,
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          "Scans Per Invite",
+                                          style: TextStyle(
+                                              fontSize: 20,
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                        Text(
+                                          _reuse.toString(),
+                                          style: TextStyle(
+                                              fontSize: 20,
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                      ],
                                     ),
                                   ],
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.only(
-                                      bottom: 20, top: 20),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(
-                                        "People Inside",
-                                        style: TextStyle(
-                                            fontSize: 20,
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                      Text(
-                                        snapshot.data!.get("scans").toString(),
-                                        style: TextStyle(
-                                            fontSize: 20,
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      "Scans Per Invite",
-                                      style: TextStyle(
-                                          fontSize: 20,
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                    Text(
-                                      _reuse.toString(),
-                                      style: TextStyle(
-                                          fontSize: 20,
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            );
-                          })),
+                                );
+                              })),
                 ),
               ),
             ],
@@ -729,7 +837,8 @@ class _MyHomePageState extends State<MyHomePage> {
     super.initState();
     Storecode();
     initConnectivity();
-    _connectivitySubscription = _connectivity.onConnectivityChanged.listen(_updateConnectionStatus);
+    _connectivitySubscription =
+        _connectivity.onConnectivityChanged.listen(_updateConnectionStatus);
   }
 
   Future<void> _testSetCurrentScreen() async {
@@ -760,7 +869,6 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> _updateConnectionStatus(ConnectivityResult result) async {
-
     setState(() {
       _connectionStatus = result;
     });
@@ -771,5 +879,4 @@ class _MyHomePageState extends State<MyHomePage> {
     _connectivitySubscription.cancel();
     super.dispose();
   }
-
 }
