@@ -205,6 +205,61 @@ class _party_settingsState extends State<party_settings> {
         height: MediaQuery.of(context).size.height,
         child: Stack(
           children: [
+            Positioned(
+              top: 0,
+              child: Container(
+                height: 300,
+                child: ClipPath(
+                  clipper: ProsteThirdOrderBezierCurve(
+                    position: ClipPosition.bottom,
+                    list: [
+                      ThirdOrderBezierCurveSection(
+                        p1: Offset(0, 150),
+                        p2: Offset(5, 230),
+                        p3: Offset(400, 50),
+                        p4: Offset(800, 400),
+                      ),
+                    ],
+                  ),
+                  child: Container(
+                    height: 300,
+                    width: MediaQuery.of(context).size.width,
+                    // color: Colors.grey.withOpacity(0.1),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(0),
+                      gradient: LinearGradient(
+                        begin: Alignment.topRight,
+                        end: Alignment.bottomLeft,
+                        colors: [
+                          //CupertinoColors.systemPink,
+                          Colors.pink,
+                          Colors.red,
+                        ],
+
+                      ),
+                      border: Border.all(
+                          color: Colors.transparent, width: 3),
+                    ),
+                    child: SafeArea(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.all(15.0),
+                              child: Text(
+                                "Credits",
+                                style: TextStyle(
+                                    fontSize: 15,
+                                    color: Colors.white.withOpacity(0)),
+                              ),
+                            ),
+                          ],
+                        )),
+                  ),
+                ),
+              ),
+            ),
+
             Column(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
@@ -244,7 +299,7 @@ class _party_settingsState extends State<party_settings> {
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+                  padding: const EdgeInsets.fromLTRB(20, 40, 20, 0),
                   child: GestureDetector(
                     onTap: () async {
                       // String test= await Navigator.push(context, PageTransition(type: PageTransitionType.fade, child: NumberSelecter(analytics: widget.analytics,reuse: _reuse,)));
@@ -458,45 +513,6 @@ class _party_settingsState extends State<party_settings> {
                   ),
                 ),
               ],
-            ),
-            Positioned(
-              bottom: 0,
-              child: Container(
-                height: 300,
-                child: ClipPath(
-                  clipper: ProsteThirdOrderBezierCurve(
-                    position: ClipPosition.top,
-                    list: [
-                      ThirdOrderBezierCurveSection(
-                        p1: Offset(0, 100),
-                        p2: Offset(150, 300),
-                        p3: Offset(200, 100),
-                        p4: Offset(0, 200),
-                      ),
-                    ],
-                  ),
-                  child: Container(
-                    height: 300,
-                    width: MediaQuery.of(context).size.width,
-                    color: Colors.grey.withOpacity(0.1),
-                    child: SafeArea(
-                        child: Column(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.all(15.0),
-                          child: Text(
-                            "Credits",
-                            style: TextStyle(
-                                fontSize: 15,
-                                color: Colors.white.withOpacity(0)),
-                          ),
-                        ),
-                      ],
-                    )),
-                  ),
-                ),
-              ),
             ),
           ],
         ),

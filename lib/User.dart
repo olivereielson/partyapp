@@ -10,6 +10,7 @@ import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_performance/firebase_performance.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -23,6 +24,8 @@ import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:top_snackbar_flutter/custom_snack_bar.dart';
+import 'package:top_snackbar_flutter/top_snack_bar.dart';
 
 import 'headers.dart';
 import 'package:custom_refresh_indicator/custom_refresh_indicator.dart';
@@ -44,8 +47,8 @@ class _UserpageState extends State<Userpage>
   late Animation<double> animation;
   late AnimationController _controller;
   PageController pc = PageController(initialPage: 0);
-  RefreshController _refreshController =
-      RefreshController(initialRefresh: false);
+  RefreshController _refreshController = RefreshController(initialRefresh: false);
+  FirebasePerformance _performance = FirebasePerformance.instance;
 
   //List<bool> expanded = [];
   int _expanded = -1;
@@ -92,90 +95,143 @@ class _UserpageState extends State<Userpage>
     );
   }
 
+
+
   Widget savedInvitese() {
-    return FutureBuilder(
-      future: pref(),
-      builder:
-          (BuildContext context, AsyncSnapshot<SharedPreferences> snapshot) {
-        if (snapshot.hasData &&
-            snapshot.data!.getStringList("wallet") != null) {
-          if (snapshot.data!.getStringList("wallet")!.length == 0) {
-            return Column(
-              children: [
-                Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 30, vertical: 90),
-                  child: Container(
-                    height: 200,
-                    width: MediaQuery.of(context).size.width,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: Colors.redAccent, width: 3),
-                      color: Colors.transparent,
-                    ),
-                    child: Stack(
-                      children: [
-                        Center(
-                            child: Text(
-                          "No Saved Cards",
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 20),
-                        )),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            );
-          }
+    return SafeArea(
+      child: Column(
 
-          return ListView.builder(
-            physics: NeverScrollableScrollPhysics(),
-            itemBuilder: (BuildContext context, int index) {
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: Hero(
-                    tag: "card$index",
-                    child: Card(index, snapshot),
-                  ),
-                ),
-              );
-            },
-            itemCount: snapshot.data!.getStringList("wallet") != null
-                ? snapshot.data!.getStringList("wallet")!.length
-                : 0,
-          );
-        }
+        children: [
 
-        return Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 90),
-              child: Container(
-                height: 200,
-                width: MediaQuery.of(context).size.width,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.redAccent, width: 3),
-                  color: Colors.transparent,
-                ),
-                child: Stack(
-                  children: [
-                    Center(
-                        child: Text(
-                      "No Saved Cards",
-                      style:
-                          TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-                    )),
-                  ],
-                ),
+          Container(
+
+
+            child: Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Row(
+                children: [
+                  Text("Saved Passes",style: TextStyle(fontSize: 30,fontWeight: FontWeight.bold),),Spacer(),
+                  //button()
+                ],
               ),
             ),
-          ],
-        );
-      },
+
+          ),
+
+          Expanded(
+            child: FutureBuilder(
+              future: pref(),
+              builder:
+                  (BuildContext context, AsyncSnapshot<SharedPreferences> snapshot) {
+                if (snapshot.hasData && snapshot.data!.getStringList("wallet") != null) {
+                  if (snapshot.data!.getStringList("wallet")!.length == 0) {
+                    return SmartRefresher(
+                      controller: _refreshController,
+                      onRefresh: checkPending,
+                      header: WaterDropHeader(
+                        waterDropColor: Colors.redAccent,),
+                      child: ListView(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 90),
+                            child: Container(
+                              height: 200,
+                              width: MediaQuery.of(context).size.width,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(color: Colors.redAccent, width: 3),
+                                color: Colors.transparent,
+                              ),
+                              child: Stack(
+                                children: [
+                                  Center(
+                                      child: Text(
+                                        "No Saved Cards",
+                                        style:
+                                        TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                                      )),
+                                ],
+                              ),
+                            ),
+                          ),
+
+                        ],
+                      ),
+                    );
+                  }
+
+                  return SmartRefresher(
+                    controller: _refreshController,
+                    onRefresh: checkPending,
+                    header: WaterDropHeader(
+                      waterDropColor: Colors.redAccent,
+
+
+                      complete: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Image.asset("assets/logo_white.png",color: Colors.white,height: 20,),
+                          ),
+                          Text("Cards Loaded")
+                        ],
+                      ),
+                      //refresh: Image.asset("assets/logo_white.png",color: Colors.white,),
+                    ),
+                    child: ListView.builder(
+                      //physics: NeverScrollableScrollPhysics(),
+                      itemBuilder: (BuildContext context, int index) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: Padding(
+                            padding: const EdgeInsets.all(20.0),
+                            child: Hero(
+                              tag: "card$index",
+                              child: Card(index, snapshot),
+                            ),
+                          ),
+                        );
+                      },
+                      itemCount: snapshot.data!.getStringList("wallet") != null ? snapshot.data!.getStringList("wallet")!.length : 0,
+
+                    ),
+                  );
+                }
+
+                return Column(
+                  children: [
+                    Padding(
+                      padding:
+                      const EdgeInsets.symmetric(horizontal: 30, vertical: 90),
+                      child: Container(
+                        height: 200,
+                        width: MediaQuery.of(context).size.width,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: Colors.redAccent, width: 3),
+                          color: Colors.transparent,
+                        ),
+                        child: Stack(
+                          children: [
+                            Center(
+                                child: Text(
+                                  "Error Loading Cards",
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold, fontSize: 20),
+                                )),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+
+                  },
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -244,8 +300,17 @@ class _UserpageState extends State<Userpage>
         width: 250,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(30),
-          color: Colors.transparent,
-          border: Border.all(color: Colors.redAccent, width: 3),
+          //color: Colors.transparent,
+          border: Border.all(color: Colors.transparent, width: 3),
+          gradient: LinearGradient(
+            begin: Alignment.topRight,
+            end: Alignment.bottomLeft,
+            colors: [
+              Colors.pink,
+              Colors.red,
+            ],
+
+          ),
           boxShadow: [
             BoxShadow(
               color: Colors.redAccent.withOpacity(0),
@@ -320,9 +385,14 @@ class _UserpageState extends State<Userpage>
   }
 
   Future<void> checkPending() async {
+
+    final Trace trace = _performance.newTrace('wallet_reload');
+    trace.start();
+
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
     if (prefs.containsKey("requests")) {
+
       List<String>? saved = prefs.getStringList("requests");
 
       saved!.toSet().toList();
@@ -330,34 +400,48 @@ class _UserpageState extends State<Userpage>
       for (String name in saved) {
         print(name.split(",")[1]);
 
-        FirebaseFirestore.instance
-            .collection('accepted')
-            .doc(name.split(",")[0])
-            .get()
-            .then((DocumentSnapshot documentSnapshot) async {
-          try {
-            print(name.split(",")[1]);
-            if (prefs.containsKey("wallet")) {
+        try {
+
+
+          FirebaseFirestore.instance.collection('accepted').doc(name.split(",")[0]).get().then((DocumentSnapshot documentSnapshot) async {
+
+            if (prefs.containsKey("wallet")&&documentSnapshot.data().toString().contains(name.split(",")[1])) {
               List<String>? wallet = prefs.getStringList("wallet");
               wallet!.add(documentSnapshot.get(name.split(",")[1]));
               prefs.setStringList("wallet", wallet);
-              setState(() {});
 
-              await FirebaseFirestore.instance
-                  .collection('accepted')
-                  .doc(name.split(",")[0])
-                  .set({name.split(",")[1]: FieldValue.delete()});
-            } else {
-              prefs.setStringList("wallet", []);
+              setState(() {
+
+              });
+
+              FirebaseFirestore.instance.collection('accepted').doc(name.split(",")[0]).set({name.split(",")[1]: FieldValue.delete()}, SetOptions(merge: true));
+           } else {
+              if(!prefs.containsKey("wallet")){
+                prefs.setStringList("wallet", []);
+              }
             }
-          } catch (e) {}
-        });
+
+          });
+          
+        }catch(e,s){
+
+          FirebaseCrashlytics.instance.recordError(e, s);
+          showTopSnackBar(
+            context,
+            CustomSnackBar.error(
+              message: "Unknown Error Occurred",
+            ),
+          );
+          
+        }
       }
       prefs.setStringList("requests", []);
+      print(prefs.get("wallet"));
     } else {
       prefs.setStringList("requests", []);
     }
 
+    trace.stop();
     _refreshController.refreshCompleted();
   }
 
@@ -368,6 +452,15 @@ class _UserpageState extends State<Userpage>
 
   @override
   Widget build(BuildContext context) {
+
+    return Scaffold(
+
+      body:savedInvitese(),
+
+    );
+
+
+
     return GestureDetector(
       onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
       child: Scaffold(
@@ -409,6 +502,7 @@ class _UserpageState extends State<Userpage>
       ..addListener(() {
         setState(() {});
       });
+
 
     super.initState();
   }

@@ -120,8 +120,9 @@ class _rootScreenState extends State<rootScreen> {
   List<Widget> _buildScreens() {
     return [
       Userpage(analytics: widget.analytics),
+      partySearch(),
       LoginPage(analytics: widget.analytics),
-      partySearch()
+
     ];
   }
 
@@ -131,7 +132,17 @@ class _rootScreenState extends State<rootScreen> {
         icon: Icon(CupertinoIcons.ticket),
         title: ("Passes"),
         activeColorPrimary: CupertinoColors.white,
-        inactiveColorPrimary: CupertinoColors.systemGrey,
+        inactiveColorPrimary: Color.fromRGBO(47, 47, 47, 1),
+      ),
+
+
+      PersistentBottomNavBarItem(
+        icon: Icon(
+          CupertinoIcons.mail,
+        ),
+        title: ("Request"),
+        activeColorPrimary: CupertinoColors.white,
+        inactiveColorPrimary: Color.fromRGBO(47, 47, 47, 1),
       ),
       PersistentBottomNavBarItem(
         icon: Icon(
@@ -139,18 +150,8 @@ class _rootScreenState extends State<rootScreen> {
         ),
         title: ("Host"),
         activeColorPrimary: CupertinoColors.white,
-        inactiveColorPrimary: CupertinoColors.systemGrey,
+        inactiveColorPrimary: Color.fromRGBO(47, 47, 47, 1),
       ),
-
-      PersistentBottomNavBarItem(
-        icon: Icon(
-          CupertinoIcons.search,
-        ),
-        title: ("Search"),
-        activeColorPrimary: CupertinoColors.white,
-        inactiveColorPrimary: CupertinoColors.systemGrey,
-      ),
-
 
     ];
   }
@@ -166,53 +167,67 @@ class _rootScreenState extends State<rootScreen> {
 
         if(snapshot.connectionState==ConnectionState.done){
 
-          return Scaffold(
-            resizeToAvoidBottomInset: false,
-            body: GestureDetector(
-              onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-              child: PersistentTabView(
-                context,
-                controller: _controller,
-                screens: _buildScreens(),
-                items: _navBarsItems(),
+          return WillPopScope(
+            onWillPop: () async => false,
+            child: Scaffold(
+              resizeToAvoidBottomInset: false,
+              body: GestureDetector(
+                onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+                child: PersistentTabView(
+                  context,
+                  controller: _controller,
+                  screens: _buildScreens(),
+                  items: _navBarsItems(),
+                  popAllScreensOnTapOfSelectedTab: false,
 
-                confineInSafeArea: true,
-                backgroundColor: Color.fromRGBO(60, 60, 60, 1),
-                //backgroundColor: _controller.index==1?Color.fromRGBO(58, 58, 58, 1):Color.fromRGBO(47, 47, 47, 0), // Default is Colors.white.
-                handleAndroidBackButtonPress: true,
-                // Default is true.
-                resizeToAvoidBottomInset: false,
-                // This needs to be true if you want to move up the screen when keyboard appears. Default is true.
-                stateManagement: true,
-                // Default is true.
+                  confineInSafeArea: true,
+                  //backgroundColor: Color.fromRGBO(60, 60, 60, 1),
+                  backgroundColor: _controller.index==2?Colors.red:Color.fromRGBO(47, 47, 47, 1), // Default is Colors.white.
+                  handleAndroidBackButtonPress: true,
+                  // Default is true.
+                  resizeToAvoidBottomInset: false,
+                  // This needs to be true if you want to move up the screen when keyboard appears. Default is true.
+                  stateManagement: true,
+                  // Default is true.
 
-                hideNavigationBarWhenKeyboardShows: true,
-                // Recommended to set 'resizeToAvoidBottomInset' as true while using this argument. Default is true.
-                decoration: NavBarDecoration(
-                    borderRadius: BorderRadius.only(
-                        topRight: Radius.circular(_controller.index == 0 ? 20.0 : 0),
-                        topLeft: Radius.circular(_controller.index == 0 ? 20.0 : 0)),
-                    colorBehindNavBar: Colors.transparent,
-                    adjustScreenBottomPaddingOnCurve: true),
-                popAllScreensOnTapOfSelectedTab: true,
-                popActionScreens: PopActionScreensType.all,
-                itemAnimationProperties: ItemAnimationProperties(
-                  // Navigation Bar's items animation properties.
-                  duration: Duration(milliseconds: 200),
-                  curve: Curves.ease,
+                  hideNavigationBarWhenKeyboardShows: true,
+
+                  decoration: NavBarDecoration(
+                      borderRadius: BorderRadius.only(
+                          topRight: Radius.circular(_controller.index != 2 ? 20.0 : 0),
+                          topLeft: Radius.circular(_controller.index != 2 ? 20.0 : 0)),
+                      colorBehindNavBar: Colors.transparent,
+                      gradient: LinearGradient(
+                    begin: Alignment.centerRight,
+                    end: Alignment.centerLeft,
+                    colors: [
+                      //CupertinoColors.systemPink,
+                      Colors.pink,
+                      Colors.red,
+                    ],
+
+
+                  ),
+                      adjustScreenBottomPaddingOnCurve: true),
+                  popActionScreens: PopActionScreensType.all,
+                  itemAnimationProperties: ItemAnimationProperties(
+                    // Navigation Bar's items animation properties.
+                    duration: Duration(milliseconds: 200),
+                    curve: Curves.ease,
+                  ),
+                  screenTransitionAnimation: ScreenTransitionAnimation(
+                    // Screen transition animation on change of selected tab.
+                    animateTabTransition: false,
+                    curve: Curves.ease,
+                    duration: Duration(milliseconds: 200),
+                  ),
+
+
+                  navBarStyle: NavBarStyle
+                      .style8, // Choose the nav bar style with this property.
                 ),
-                screenTransitionAnimation: ScreenTransitionAnimation(
-                  // Screen transition animation on change of selected tab.
-                  animateTabTransition: false,
-                  curve: Curves.ease,
-                  duration: Duration(milliseconds: 200),
-                ),
 
-
-                navBarStyle: NavBarStyle
-                    .style8, // Choose the nav bar style with this property.
               ),
-
             ),
           );
 

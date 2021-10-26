@@ -72,7 +72,22 @@ class _LoginPageState extends State<LoginPage> {
                         height: 400,
                         width: MediaQuery.of(context).size.width,
                         //color: Colors.redAccent,
-                        color: Colors.grey.withOpacity(0.1),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(0),
+                          gradient: LinearGradient(
+                            begin: Alignment.centerRight,
+                            end: Alignment.centerLeft,
+                            colors: [
+                              //CupertinoColors.systemPink,
+                              Colors.pink,
+                              Colors.red,
+                            ],
+
+                          ),
+                          border: Border.all(
+                              color: Colors.transparent, width: 3),
+                        ),
+                        //color: Colors.grey.withOpacity(0.1),
                       ),
                     ),
                   ),

@@ -73,9 +73,8 @@ class _UserScanState extends State<UserScan> {
           String id=generateID(result.code.split(",")[0]);
 
           FirebaseFirestore.instance.collection('party').doc(result.code.split(",")[0]).set({id: result.code.split(",")[2]},SetOptions(merge: true));
-          FirebaseFirestore.instance.collection('party').doc(result.code.split(",")[0]).get().then((DocumentSnapshot documentSnapshot){
-            FirebaseFirestore.instance.collection('party').doc(result.code.split(",")[0]).set({"invites": documentSnapshot.get("invites")+1},SetOptions(merge: true));
-          });
+          FirebaseFirestore.instance.collection('party').doc(result.code.split(",")[0]).set({"invites": FieldValue.increment(1)},SetOptions(merge: true));
+
 
 
 
