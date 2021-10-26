@@ -274,7 +274,7 @@ class _LoginPageState extends State<LoginPage> {
                               Navigator.push(
                                   context,
                                   PageTransition(
-                                      type: PageTransitionType.bottomToTop,
+                                      type: PageTransitionType.leftToRight,
                                       duration: Duration(milliseconds: 500),
                                       child: CreateParty(
                                         analytics: widget.analytics,

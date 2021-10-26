@@ -1,5 +1,6 @@
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:proste_bezier_curve/proste_bezier_curve.dart';
@@ -63,24 +64,29 @@ class _partySearchState extends State<partySearch> {
 
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
-    if(prefs.containsKey("requests")){
 
-      List<String>? saved=  prefs.getStringList("requests");
-
-      if(saved!.contains(_partyName+","+_Name)){
-
-        warning("You Have Already Sent a Request");
-
-        return false;
+    var connectivityResult = await (Connectivity().checkConnectivity());
+    if (connectivityResult == ConnectivityResult.none) {
 
 
-      }
-
-    }else{
-
-      prefs.setStringList("requests", []);
+      warning("No Internet Connection");
 
     }
+
+    if(connectivityResult != ConnectivityResult.none) {
+      if (prefs.containsKey("requests")) {
+        List<String>? saved = prefs.getStringList("requests");
+
+        if (saved!.contains(_partyName + "," + _Name)) {
+          warning("You Have Already Sent a Request");
+
+          return false;
+        }
+      } else {
+        prefs.setStringList("requests", []);
+      }
+    }
+
 
 
     return true;
@@ -162,21 +168,6 @@ class _partySearchState extends State<partySearch> {
                         border: Border.all(
                             color: Colors.transparent, width: 3),
                       ),
-                      child: SafeArea(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.all(15.0),
-                                child: Text(
-                                  "Credits",
-                                  style: TextStyle(
-                                      fontSize: 15,
-                                      color: Colors.white.withOpacity(0)),
-                                ),
-                              ),
-                            ],
-                          )),
                     ),
                   ),
                 ),
@@ -203,6 +194,11 @@ class _partySearchState extends State<partySearch> {
                                     fontWeight: FontWeight.bold),
                               ),
                               Spacer(),
+                              IconButton(onPressed: (){
+
+
+
+                              }, icon: Icon(Icons.info_outline))
                             ],
                           ),
                         ),

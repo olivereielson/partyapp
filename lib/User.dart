@@ -96,7 +96,6 @@ class _UserpageState extends State<Userpage>
   }
 
 
-
   Widget savedInvitese() {
     return SafeArea(
       child: Column(
@@ -138,9 +137,26 @@ class _UserpageState extends State<Userpage>
                               height: 200,
                               width: MediaQuery.of(context).size.width,
                               decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border.all(color: Colors.redAccent, width: 3),
-                                color: Colors.transparent,
+                                borderRadius: BorderRadius.circular(30),
+                                //color: Colors.transparent,
+                                border: Border.all(color: Colors.transparent, width: 3),
+                                gradient: LinearGradient(
+                                  begin: Alignment.topRight,
+                                  end: Alignment.bottomLeft,
+                                  colors: [
+                                    Colors.pink,
+                                    Colors.red,
+                                  ],
+
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.redAccent.withOpacity(0),
+                                    spreadRadius: 2,
+                                    blurRadius: 7,
+                                    offset: Offset(0, 3), // changes position of shadow
+                                  ),
+                                ],
                               ),
                               child: Stack(
                                 children: [
@@ -199,32 +215,55 @@ class _UserpageState extends State<Userpage>
                   );
                 }
 
-                return Column(
-                  children: [
-                    Padding(
-                      padding:
-                      const EdgeInsets.symmetric(horizontal: 30, vertical: 90),
-                      child: Container(
-                        height: 200,
-                        width: MediaQuery.of(context).size.width,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: Colors.redAccent, width: 3),
-                          color: Colors.transparent,
-                        ),
-                        child: Stack(
-                          children: [
-                            Center(
-                                child: Text(
-                                  "Error Loading Cards",
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.bold, fontSize: 20),
-                                )),
-                          ],
+                return SmartRefresher(
+                  controller: _refreshController,
+                  onRefresh: checkPending,
+                  header: WaterDropHeader(
+                    waterDropColor: Colors.redAccent,),
+                  child: ListView(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 90),
+                        child: Container(
+                          height: 200,
+                          width: MediaQuery.of(context).size.width,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(30),
+                            //color: Colors.transparent,
+                            border: Border.all(color: Colors.transparent, width: 3),
+                            gradient: LinearGradient(
+                              begin: Alignment.topRight,
+                              end: Alignment.bottomLeft,
+                              colors: [
+                                Colors.pink,
+                                Colors.red,
+                              ],
+
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.redAccent.withOpacity(0),
+                                spreadRadius: 2,
+                                blurRadius: 7,
+                                offset: Offset(0, 3), // changes position of shadow
+                              ),
+                            ],
+                          ),
+                          child: Stack(
+                            children: [
+                              Center(
+                                  child: Text(
+                                    "Error Occurred Loading Cards",
+                                    style:
+                                    TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                                  )),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+
+                    ],
+                  ),
                 );
 
                   },
@@ -450,6 +489,26 @@ class _UserpageState extends State<Userpage>
     return prefs;
   }
 
+  Future<void> setupPrefs() async {
+
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    if(!prefs.containsKey("wallet")){
+      prefs.setStringList("wallet", []);
+    }
+
+    if(!prefs.containsKey("requests")){
+      prefs.setStringList("requests", []);
+    }
+
+    setState(() {
+
+    });
+
+
+
+  }
+
   @override
   Widget build(BuildContext context) {
 
@@ -502,7 +561,7 @@ class _UserpageState extends State<Userpage>
       ..addListener(() {
         setState(() {});
       });
-
+    setupPrefs();
 
     super.initState();
   }
