@@ -122,6 +122,8 @@ class _MyHomePageState extends State<MyHomePage> {
   GlobalKey keyButton4 = GlobalKey();
   GlobalKey keyButton5 = GlobalKey();
 
+  bool dead = false;
+
   success(String message) {
     showTopSnackBar(
       context,
@@ -157,27 +159,31 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   shareCode(DocumentReference party) async {
-    print("here");
-    final Trace trace = _performance.newTrace('share_trace');
-    await trace.start();
+    if (_connectionStatus != ConnectivityResult.none) {
+      final Trace trace = _performance.newTrace('share_trace');
+      await trace.start();
 
-    if (cashId == "" || cashPath == "") {
-      await Storecode;
+      if (cashId == "" || cashPath == "") {
+        await Storecode;
+      }
+
+      party.set({cashId: _reuse}, SetOptions(merge: true));
+
+      party.set({"invites": FieldValue.increment(1)}, SetOptions(merge: true));
+
+      await Share.shareFiles([cashPath],
+          text:
+              "Save in App:PartyLabs://PartyLabsInviteCodeLink.com/${cashId}");
+
+      setState(() {});
+
+      cashPath = "";
+      cashId = "";
+      Storecode();
+      await trace.stop();
+    } else {
+      warning("No Internet Connection");
     }
-
-    party.set({cashId: _reuse}, SetOptions(merge: true));
-
-    party.set({"invites": FieldValue.increment(1)}, SetOptions(merge: true));
-
-    await Share.shareFiles([cashPath],
-        text: "Save in App:PartyLabs://PartyLabsInviteCodeLink.com/${cashId}");
-
-    setState(() {});
-
-    cashPath = "";
-    cashId = "";
-    Storecode();
-    await trace.stop();
   }
 
   Storecode() async {
@@ -434,264 +440,265 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget inviteStream() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
-          child: Text(
-            "Invite Requests",
-            style: TextStyle(
-                color: Colors.transparent, fontWeight: FontWeight.bold, fontSize: 20),
-          ),
-        ),
-        Container(
-          child: _connectionStatus == ConnectivityResult.none
-              ? Center(child: Text("No Internet Connection"))
-              : StreamBuilder(
-                  stream: FirebaseFirestore.instance
-                      .collection('requests')
-                      .doc(widget.partyName)
-                      .snapshots(),
-                  builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
-                    if (snapshot.hasData) {
-                      if (snapshot.data!.data().toString().length > 2) {
-                        List<String> Data = snapshot.data!
-                            .data()
-                            .toString()
-                            .substring(
-                                1, snapshot.data!.data().toString().length - 1)
-                            .split(",");
-                        return Container(
-                          height: 210,
-                          width: MediaQuery.of(context).size.width,
-                          child: Swiper(
-                            itemBuilder: (BuildContext context, int index) {
-                              return Padding(
-                                padding: const EdgeInsets.all(15.0),
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(20),
-                                   // color: Colors.redAccent,
-                                    gradient: LinearGradient(
-                                      begin: Alignment.topRight,
-                                      end: Alignment.bottomLeft,
-                                      colors: [
-                                        Colors.pink,
-                                        Colors.red,
-                                      ],
-
+    return Container(
+      key: keyButton,
+      child: _connectionStatus == ConnectivityResult.none
+          ? Padding(
+              padding: const EdgeInsets.all(15.0),
+              child: Container(
+                height: 210,
+                width: MediaQuery.of(context).size.width,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  // color: Colors.redAccent,
+                  gradient: LinearGradient(
+                    begin: Alignment.topRight,
+                    end: Alignment.bottomLeft,
+                    colors: [
+                      Colors.pink,
+                      Colors.red,
+                    ],
+                  ),
+                ),
+                child: Center(
+                    child: Text(
+                  "No Internet Connection",
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                )),
+              ),
+            )
+          : StreamBuilder(
+              stream: FirebaseFirestore.instance
+                  .collection('requests')
+                  .doc(widget.partyName)
+                  .snapshots(),
+              builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+                if (snapshot.hasData) {
+                  if (snapshot.data!.data().toString().length > 2 &&
+                      snapshot.data!.data().toString() != "null") {
+                    List<String> Data = snapshot.data!
+                        .data()
+                        .toString()
+                        .substring(
+                            1, snapshot.data!.data().toString().length - 1)
+                        .split(",");
+                    return Container(
+                      height: 210,
+                      width: MediaQuery.of(context).size.width,
+                      child: Swiper(
+                        itemBuilder: (BuildContext context, int index) {
+                          return Padding(
+                            padding: const EdgeInsets.all(15.0),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(20),
+                                // color: Colors.redAccent,
+                                gradient: LinearGradient(
+                                  begin: Alignment.topRight,
+                                  end: Alignment.bottomLeft,
+                                  colors: [
+                                    Colors.pink,
+                                    Colors.red,
+                                  ],
+                                ),
+                              ),
+                              width: MediaQuery.of(context).size.width,
+                              child: Center(
+                                  child: Padding(
+                                padding: const EdgeInsets.all(10.0),
+                                child: Column(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 30),
+                                      child: Row(
+                                        children: [
+                                          Container(
+                                              decoration: BoxDecoration(
+                                                borderRadius:
+                                                    BorderRadius.circular(10),
+                                                color: Color.fromRGBO(
+                                                    40, 40, 40, 1),
+                                              ),
+                                              child: Padding(
+                                                padding:
+                                                    const EdgeInsets.all(8.0),
+                                                child: Image.asset(
+                                                  "assets/logo_white.png",
+                                                  height: 40,
+                                                  color: Colors.redAccent,
+                                                ),
+                                              )),
+                                          Expanded(
+                                            child: Padding(
+                                              padding:
+                                                  const EdgeInsets.all(8.0),
+                                              child: AutoSizeText(
+                                                Data[index].split(":")[0],
+                                                maxLines: 2,
+                                                minFontSize: 20,
+                                                style: TextStyle(
+                                                    fontWeight:
+                                                        FontWeight.bold),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                     ),
-                                    border: Border.all(
-                                        color: Colors.transparent, width: 3),
-                                  ),
-                                  child: Center(
-                                      child: Padding(
-                                    padding: const EdgeInsets.all(10.0),
-                                    child: Column(
+                                    Row(
                                       mainAxisAlignment:
                                           MainAxisAlignment.spaceEvenly,
                                       children: [
                                         Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 30),
-                                          child: Row(
-                                            children: [
-                                              Container(
-                                                  decoration: BoxDecoration(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            10),
-                                                    color: Color.fromRGBO(
-                                                        40, 40, 40, 1),
-                                                  ),
-                                                  child: Padding(
-                                                    padding:
-                                                        const EdgeInsets.all(
-                                                            8.0),
-                                                    child: Image.asset(
-                                                      "assets/logo_white.png",
-                                                      height: 40,
-                                                      color: Colors.redAccent,
-                                                    ),
-                                                  )),
-                                              Padding(
-                                                padding:
-                                                    const EdgeInsets.all(8.0),
-                                                child: Text(
-                                                  Data[index].split(":")[0],
-                                                  style: TextStyle(
-                                                      fontSize: 30,
-                                                      fontWeight:
-                                                          FontWeight.bold),
-                                                ),
-                                              ),
-                                            ],
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: CupertinoButton(
+                                            onPressed: () => rejectInvite(
+                                                Data[index].split(":")[0]),
+                                            child: Text("Reject",
+                                                style: TextStyle(
+                                                    color: Colors.redAccent,
+                                                    fontWeight:
+                                                        FontWeight.bold)),
+                                            color:
+                                                Color.fromRGBO(60, 60, 60, 1),
+                                            padding: EdgeInsets.symmetric(
+                                                horizontal: 30),
                                           ),
                                         ),
-                                        Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceEvenly,
-                                          children: [
-                                            Padding(
-                                              padding:
-                                                  const EdgeInsets.all(8.0),
-                                              child: CupertinoButton(
-                                                onPressed: () => rejectInvite(
-                                                    Data[index].split(":")[0]),
-                                                child: Text("Reject",
-                                                    style: TextStyle(
-                                                        color: Colors.redAccent,
-                                                        fontWeight:
-                                                            FontWeight.bold)),
-                                                color: Color.fromRGBO(
-                                                    60, 60, 60, 1),
-                                                padding: EdgeInsets.symmetric(
-                                                    horizontal: 30),
-                                              ),
+                                        Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: CupertinoButton(
+                                            onPressed: () => acceptInvite(
+                                                Data[index].split(":")[0]),
+                                            child: Text(
+                                              "Accept",
+                                              style: TextStyle(
+                                                  color: Colors.green,
+                                                  fontWeight: FontWeight.bold),
                                             ),
-                                            Padding(
-                                              padding:
-                                                  const EdgeInsets.all(8.0),
-                                              child: CupertinoButton(
-                                                onPressed: () => acceptInvite(
-                                                    Data[index].split(":")[0]),
-                                                child: Text(
-                                                  "Accept",
-                                                  style: TextStyle(
-                                                      color: Colors.green,
-                                                      fontWeight:
-                                                          FontWeight.bold),
-                                                ),
-                                                color: Color.fromRGBO(
-                                                    60, 60, 60, 1),
-                                                padding: EdgeInsets.symmetric(
-                                                    horizontal: 60),
-                                              ),
-                                            )
-                                          ],
+                                            color:
+                                                Color.fromRGBO(60, 60, 60, 1),
+                                            padding: EdgeInsets.symmetric(
+                                                horizontal: 60),
+                                          ),
                                         )
                                       ],
-                                    ),
-                                  )),
+                                    )
+                                  ],
                                 ),
-                              );
-                            },
-                            itemCount: Data.length,
-                            containerHeight: MediaQuery.of(context).size.width,
-                            containerWidth: 200,
-                            loop: true,
-                            onTap: (int) {
-                              print(int);
-                            },
-                            pagination: new SwiperPagination(
-                                margin: new EdgeInsets.all(0.0),
-                                builder: new DotSwiperPaginationBuilder(
-                                    color: Colors.transparent,
-                                    activeColor: Colors.transparent,
-                                    space: 20,
-                                    size: 5.0,
-                                    activeSize: 7.0)),
-                            control: new SwiperControl(
-                              color: Colors.transparent,
-                              disableColor: Colors.transparent,
+                              )),
                             ),
-                          ),
-                        );
-                      }
-                      return Padding(
-                        padding: const EdgeInsets.all(15.0),
-                        child: Container(
-                          height: 210,
-                          width: MediaQuery.of(context).size.width,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(20),
-                            gradient: LinearGradient(
-                              begin: Alignment.topRight,
-                              end: Alignment.bottomLeft,
-                              colors: [
-                                //CupertinoColors.systemPink,
-                                Colors.pink,
-                                Colors.red,
-                              ],
-
-                            ),
-
-                            border: Border.all(color: Colors.transparent, width: 3),
-                          ),
-                          child: Center(
-                            child: Text(
-                              "No Invite Requests",
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 20),
-                            ),
-                          ),
+                          );
+                        },
+                        itemCount: Data.length,
+                        containerHeight: MediaQuery.of(context).size.width,
+                        containerWidth: 200,
+                        loop: true,
+                        onTap: (int) {
+                          print(int);
+                        },
+                        pagination: new SwiperPagination(
+                            margin: new EdgeInsets.all(0.0),
+                            builder: new DotSwiperPaginationBuilder(
+                                color: Colors.transparent,
+                                activeColor: Colors.transparent,
+                                space: 20,
+                                size: 5.0,
+                                activeSize: 7.0)),
+                        control: new SwiperControl(
+                          color: Colors.transparent,
+                          disableColor: Colors.transparent,
                         ),
-                      );
-                    }
-
-                    return Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: Colors.redAccent, width: 3),
+                      ),
+                    );
+                  }
+                  return Padding(
+                    padding: const EdgeInsets.all(15.0),
+                    child: Container(
+                      height: 210,
+                      width: MediaQuery.of(context).size.width,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        gradient: LinearGradient(
+                          begin: Alignment.topRight,
+                          end: Alignment.bottomLeft,
+                          colors: [
+                            //CupertinoColors.systemPink,
+                            Colors.pink,
+                            Colors.red,
+                          ],
                         ),
-                        child: Center(child: Text("Loading")));
-                  },
-                ),
-        ),
-      ],
+                        border: Border.all(color: Colors.transparent, width: 3),
+                      ),
+                      child: Center(
+                        child: Text(
+                          "No Invite Requests",
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 20),
+                        ),
+                      ),
+                    ),
+                  );
+                }
+
+                return Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: Colors.redAccent, width: 3),
+                    ),
+                    child: Center(child: Text("Loading")));
+              },
+            ),
     );
   }
 
   Widget statStream() {
-    return Padding(
-      padding: const EdgeInsets.only(top: 50),
-      //padding: const EdgeInsets.all(15.0),
-      child: Container(
-        decoration: new BoxDecoration(
-         //  color: Colors.grey.withOpacity(0.1),
+    print(dead);
+    if (dead) {
+      return Container();
+    }
+
+    return Container(
+      decoration: new BoxDecoration(
+          //  color: Colors.grey.withOpacity(0.1),
           //color: Colors.white10,
-            gradient: LinearGradient(
-              begin: Alignment.centerRight,
-              end: Alignment.centerLeft,
-              colors: [
-                //CupertinoColors.systemPink,
-                Colors.pink,
-                Colors.red,
-              ],
+          gradient: LinearGradient(
+            begin: Alignment.centerRight,
+            end: Alignment.centerLeft,
+            colors: [
+              //CupertinoColors.systemPink,
+              Colors.pink,
+              Colors.red,
+            ],
+          ),
+          borderRadius: new BorderRadius.only(
+            topLeft: const Radius.circular(20.0),
+            topRight: const Radius.circular(20.0),
+            //   bottomRight: const Radius.circular(20.0),
+            //   / bottomLeft: const Radius.circular(20.0),
+          )),
+      width: MediaQuery.of(context).size.width,
+      child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          child: _connectionStatus == ConnectivityResult.none
+              ? Center(
+                  child: Text(
+                  "No Internet Connection",
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ))
+              : StreamBuilder<DocumentSnapshot>(
+                  stream: FirebaseFirestore.instance.collection('party').doc(widget.partyName)
+                      .snapshots(),
+                  key: keyButton3,
+                  builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+                    if (snapshot.hasError) {
+                      return Center(child: Text('Something went wrong'));
+                    }
 
-
-            ),
-            border: Border.all(
-              color: Colors.transparent,
-              width: 5,
-            ),
-            borderRadius: new BorderRadius.only(
-              topLeft: const Radius.circular(20.0),
-              topRight: const Radius.circular(20.0),
-           //   bottomRight: const Radius.circular(20.0),
-           //   / bottomLeft: const Radius.circular(20.0),
-            )),
-        width: MediaQuery.of(context).size.width,
-        child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            child: _connectionStatus == ConnectivityResult.none
-                ? Center(child: Text("No Internet Connection"))
-                : StreamBuilder<DocumentSnapshot>(
-                    stream: FirebaseFirestore.instance
-                        .collection('party')
-                        .doc(widget.partyName)
-                        .snapshots(),
-                    key: keyButton3,
-                    builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
-                      if (snapshot.hasError) {
-                        return Center(child: Text('Something went wrong'));
-                      }
-
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return Center(child: Text("Loading"));
-                      }
-
+                    if (snapshot.hasData) {
                       return Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -705,24 +712,30 @@ class _MyHomePageState extends State<MyHomePage> {
                                 child: Text(
                                   "Party Info",
                                   style: TextStyle(
-                                      fontWeight: FontWeight.bold, fontSize: 30),
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 30),
                                 ),
                               ),
                               IconButton(
                                   onPressed: () async {
                                     _reuse = await Navigator.push(
-                                        context,
-                                        PageTransition(
-                                            type: PageTransitionType.fade,
-                                            child: party_settings(
-                                              widget.analytics,
-                                              partyName: widget.partyName,
-                                              partyCode: widget.partyCode,
-                                              reuse: _reuse,
-                                            )));
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) => party_settings(
+                                                widget.analytics,
+                                                partyName: widget.partyName,
+                                                partyCode: widget.partyCode,
+                                                reuse: _reuse,
+                                              )),
+                                    );
 
                                     if (_reuse == -1) {
+
+                                      dead=true;
                                       Navigator.pop(context);
+
+                                      FirebaseFirestore.instance.collection('party').doc(widget.partyName).delete().then((value) {
+                                      });
                                     }
 
                                     setState(() {});
@@ -734,27 +747,30 @@ class _MyHomePageState extends State<MyHomePage> {
                                   ))
                             ],
                           ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                "Invitations Sent",
-                                style: TextStyle(
-                                    fontSize: 20,
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold),
-                              ),
-                              Text(
-                                snapshot.data!.get("invites").toString(),
-                                style: TextStyle(
-                                    fontSize: 20,
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold),
-                              ),
-                            ],
-                          ),
+                          /*
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "Invitations Sent",
+                              style: TextStyle(
+                                  fontSize: 20,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold),
+                            ),
+                            Text(
+                              snapshot.data!.get("invites").toString(),
+                              style: TextStyle(
+                                  fontSize: 20,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+
+                      */
                           Padding(
-                            padding: const EdgeInsets.only(bottom: 20, top: 20),
+                            padding: const EdgeInsets.only(bottom: 20, top: 0),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
@@ -796,8 +812,9 @@ class _MyHomePageState extends State<MyHomePage> {
                           ),
                         ],
                       );
-                    })),
-      ),
+                    }
+                    return Center(child: Text('Something went wrong'));
+                  })),
     );
   }
 
@@ -832,16 +849,13 @@ class _MyHomePageState extends State<MyHomePage> {
             Positioned(
                 right: 10,
                 child: IconButton(
-
-              icon: Icon(CupertinoIcons.share),
-              onPressed: (){
-
-               shareCode(FirebaseFirestore.instance.collection("party").doc(widget.partyName));
-
-              },
-
-
-            )),
+                  icon: Icon(CupertinoIcons.share),
+                  onPressed: () {
+                    shareCode(FirebaseFirestore.instance
+                        .collection("party")
+                        .doc(widget.partyName));
+                  },
+                )),
             Center(
               child: Padding(
                 padding: const EdgeInsets.all(30.0),
@@ -857,19 +871,22 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  Widget topBar(){
+  Widget topBar() {
+    if (dead) {
+      return Container();
+    }
 
     return Container(
       child: StreamBuilder(
-
-        stream: FirebaseFirestore.instance.collection('party').doc(widget.partyName).snapshots(),
-
-        builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
-
+        stream: FirebaseFirestore.instance
+            .collection('party')
+            .doc(widget.partyName)
+            .snapshots(),
+        builder:
+            (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
           if (snapshot.hasData) {
-
-            return               Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15,vertical: 20),
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 20),
               child: Container(
                 height: 100,
                 decoration: BoxDecoration(
@@ -882,81 +899,83 @@ class _MyHomePageState extends State<MyHomePage> {
                       Colors.pink,
                       Colors.red,
                     ],
-
                   ),
-                  border: Border.all(
-                      color: Colors.transparent, width: 3),
+                  border: Border.all(color: Colors.transparent, width: 3),
                 ),
                 child: Padding(
                   padding: const EdgeInsets.all(15.0),
                   child: Row(
                     children: [
-                      Text(snapshot.data!.get("invites").toString()+" Invites",style: TextStyle(fontWeight: FontWeight.bold,fontSize: 30),),
+                      Text(
+                        snapshot.data!.get("invites") == 1
+                            ? "1 Invite"
+                            : snapshot.data!.get("invites").toString() +
+                                " Invites",
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 30),
+                      ),
                       Spacer(),
-                      IconButton(icon: Icon(CupertinoIcons.share),onPressed: (){
-
-                        shareCode(FirebaseFirestore.instance.collection("party").doc(widget.partyName));
-
-                      },)
+                      IconButton(
+                        icon: Icon(CupertinoIcons.share),
+                        onPressed: () {
+                          shareCode(FirebaseFirestore.instance
+                              .collection("party")
+                              .doc(widget.partyName));
+                        },
+                      )
                     ],
                   ),
                 ),
-
               ),
             );
+          }
 
-
-        }
-
-          return  Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15,vertical: 20),
-              child: Container(
-                height: 100,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
-                  gradient: LinearGradient(
-                    begin: Alignment.topRight,
-                    end: Alignment.bottomLeft,
-                    colors: [
-                      //CupertinoColors.systemPink,
-                      Colors.pink,
-                      Colors.red,
-                    ],
-
-                  ),
-                  border: Border.all(
-                      color: Colors.transparent, width: 3),
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 20),
+            child: Container(
+              height: 100,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                gradient: LinearGradient(
+                  begin: Alignment.topRight,
+                  end: Alignment.bottomLeft,
+                  colors: [
+                    //CupertinoColors.systemPink,
+                    Colors.pink,
+                    Colors.red,
+                  ],
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.all(15.0),
-                  child: Row(
-                    children: [
-                      Text("Loading",style: TextStyle(fontWeight: FontWeight.bold,fontSize: 30),),
-                      Spacer(),
-                      IconButton(icon: Icon(CupertinoIcons.share,color: Colors.white10,),onPressed: (){
-
-                        shareCode(FirebaseFirestore.instance.collection("party").doc(widget.partyName));
-
-                      },)
-                    ],
-                  ),
-                ),
-
+                border: Border.all(color: Colors.transparent, width: 3),
               ),
-            );
-
-
-
-
-
-          },
-
-
-
+              child: Padding(
+                padding: const EdgeInsets.all(15.0),
+                child: Row(
+                  children: [
+                    Text(
+                      "Loading",
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 30),
+                    ),
+                    Spacer(),
+                    IconButton(
+                      icon: Icon(
+                        CupertinoIcons.share,
+                        color: Colors.white10,
+                      ),
+                      onPressed: () {
+                        shareCode(FirebaseFirestore.instance
+                            .collection("party")
+                            .doc(widget.partyName));
+                      },
+                    )
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
-
-
   }
 
   @override
@@ -1008,15 +1027,23 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
             ],
           ),
-          body: Column(
-            children: [
-             // centerCode(),
+          body: Container(
+            height: MediaQuery.of(context).size.height,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // centerCode(),
 
-              topBar(),
-              inviteStream(),
-              Spacer(),
-              statStream(),
-            ],
+                Flexible(flex: 6, child: topBar()),
+                Flexible(flex: 1, child: Container()),
+                Flexible(flex: 6, child: inviteStream()),
+                Flexible(flex: 1, child: Container()),
+
+                Spacer(),
+
+                Flexible(flex: 8, child: statStream()),
+              ],
+            ),
           ),
         ));
   }

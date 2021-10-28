@@ -131,182 +131,180 @@ class _partySearchState extends State<partySearch> {
       child: Scaffold(
         body: GestureDetector(
           onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-          child: Stack(
-            children: [
-              Positioned(
-                top: 0,
-                child: Container(
-                  height: 500,
-                  child: ClipPath(
-                    clipper: ProsteThirdOrderBezierCurve(
-                      position: ClipPosition.bottom,
-                      list: [
-                        ThirdOrderBezierCurveSection(
-                          p1: Offset(0, 100),
-                          p2: Offset(5, 200),
-                          p3: Offset(400, 50),
-                          p4: Offset(800, 300),
-                        ),
-                      ],
-                    ),
-                    child: Container(
-                      height: 300,
-                      width: MediaQuery.of(context).size.width,
-                      // color: Colors.grey.withOpacity(0.1),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(0),
-                        gradient: LinearGradient(
-                          begin: Alignment.topRight,
-                          end: Alignment.bottomLeft,
-                          colors: [
-                            //CupertinoColors.systemPink,
-                            Colors.pink,
-                            Colors.red,
-                          ],
+          child: Padding(
+            padding: const EdgeInsets.only(top: 0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
 
-                        ),
-                        border: Border.all(
-                            color: Colors.transparent, width: 3),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
+                Container(
+                  child: Stack(
+                    children: [
+                      Container(
 
-              SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 0),
-                  child: Container(
-                    height: MediaQuery.of(context).size.height,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 30, vertical: 20),
-                          child: Row(
-                            children: [
-                              Text(
-                                "Request Invite",
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 30,
-                                    fontWeight: FontWeight.bold),
+                        child: ClipPath(
+                          clipper: ProsteThirdOrderBezierCurve(
+                            position: ClipPosition.bottom,
+                            list: [
+                              ThirdOrderBezierCurveSection(
+                                p1: Offset(0, 100),
+                                p2: Offset(5, 170),
+                                p3: Offset(400, 80),
+                                p4: Offset(MediaQuery.of(context).size.width, 150),
                               ),
-                              Spacer(),
-                              IconButton(onPressed: (){
-
-
-
-                              }, icon: Icon(Icons.info_outline))
                             ],
                           ),
-                        ),
+                          child: Container(
+                            height: 170,
+                            width: MediaQuery.of(context).size.width,
+                            // color: Colors.grey.withOpacity(0.1),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(0),
+                              gradient: LinearGradient(
+                                begin: Alignment.topRight,
+                                end: Alignment.bottomLeft,
+                                colors: [
+                                  //CupertinoColors.systemPink,
+                                  Colors.pink,
+                                  Colors.red,
+                                ],
 
-
-
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 30,vertical: 50),
-                          child: TextField(
-                            cursorColor: Colors.redAccent,
-                            controller: _nameController,
-                            decoration: InputDecoration(
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius:
-                                  BorderRadius.all(Radius.circular(25)),
-                                  borderSide: BorderSide(
-                                      color: Colors.redAccent,
-                                      width: 2.0,
-                                      style: BorderStyle.solid),
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius:
-                                  BorderRadius.all(Radius.circular(25)),
-                                  borderSide: BorderSide(
-                                      color: Colors.redAccent, width: 2.0),
-                                ),
-                                hintText: 'Name',
-                                ),
-                            toolbarOptions: ToolbarOptions(),
-                            onChanged: (String name) {
-                              setState(() {
-                                _Name = name;
-                              });
-                            },
-                            onSubmitted: (String name) {
-                              _Name = name;
-
-                            },
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 30,vertical: 0),
-                          child: TextField(
-                            cursorColor: Colors.redAccent,
-                            controller: _partyNameController,
-                            decoration: InputDecoration(
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius:
-                                  BorderRadius.all(Radius.circular(25)),
-                                  borderSide: BorderSide(
-                                      color: Colors.redAccent,
-                                      width: 2.0,
-                                      style: BorderStyle.solid),
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius:
-                                  BorderRadius.all(Radius.circular(25)),
-                                  borderSide: BorderSide(
-                                      color: Colors.redAccent, width: 2.0),
-                                ),
-                                hintText: 'Party Name',
-                                counter: Text("${_partyName.length}/20")),
-                            toolbarOptions: ToolbarOptions(),
-                            onChanged: (String name) {
-                              setState(() {
-                                _partyName = name;
-                              });
-                            },
-                            onSubmitted: (String name) {
-
-                            },
-                            maxLength: 20,
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 0,top: 50),
-                          child: CupertinoButton(
-                              color: Colors.redAccent,
-                              child: Text(
-                                "Send Request",
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold),
                               ),
-                              onPressed: () async {
-
-
-                                if(_partyName.replaceAll(" ", "")==""){
-                                  warning("Enter Party Name");
-                                }
-                                if(_Name.replaceAll(" ", "")==""){
-                                  warning("Enter Your Name");
-                                }
-
-                                if(_partyName.replaceAll(" ", "")!=""&&_Name.replaceAll(" ", "")!=""){
-
-                                  request();
-
-                                }
-
-                              }),
+                              border: Border.all(
+                                  color: Colors.transparent, width: 3),
+                            ),
+                          ),
                         ),
-                      ],
-                    ),
+                      ),
+                      SafeArea(
+                        child: Container(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 30, vertical: 10),
+                            child: Row(
+                              children: [
+                                Text(
+                                  "Request Invite",
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 30,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                                Spacer(),
+                                IconButton(onPressed: (){
+
+
+
+                                }, icon: Icon(Icons.info_outline))
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+
+                    ],
                   ),
                 ),
-              ),
-            ],
+
+
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(30,0,30,50),
+                  child: TextField(
+                    cursorColor: Colors.redAccent,
+                    controller: _nameController,
+                    decoration: InputDecoration(
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius:
+                          BorderRadius.all(Radius.circular(25)),
+                          borderSide: BorderSide(
+                              color: Colors.redAccent,
+                              width: 2.0,
+                              style: BorderStyle.solid),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius:
+                          BorderRadius.all(Radius.circular(25)),
+                          borderSide: BorderSide(
+                              color: Colors.redAccent, width: 2.0),
+                        ),
+                        hintText: 'Name',
+                        ),
+                    toolbarOptions: ToolbarOptions(),
+                    onChanged: (String name) {
+                      setState(() {
+                        _Name = name;
+                      });
+                    },
+                    onSubmitted: (String name) {
+                      _Name = name;
+
+                    },
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 30,vertical: 0),
+                  child: TextField(
+                    cursorColor: Colors.redAccent,
+                    controller: _partyNameController,
+                    decoration: InputDecoration(
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius:
+                          BorderRadius.all(Radius.circular(25)),
+                          borderSide: BorderSide(
+                              color: Colors.redAccent,
+                              width: 2.0,
+                              style: BorderStyle.solid),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius:
+                          BorderRadius.all(Radius.circular(25)),
+                          borderSide: BorderSide(
+                              color: Colors.redAccent, width: 2.0),
+                        ),
+                        hintText: 'Party Name',
+                        counter: Text("${_partyName.length}/20")),
+                    toolbarOptions: ToolbarOptions(),
+                    onChanged: (String name) {
+                      setState(() {
+                        _partyName = name;
+                      });
+                    },
+                    onSubmitted: (String name) {
+
+                    },
+                    maxLength: 20,
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 0,top: 50),
+                  child: CupertinoButton(
+                      color: Colors.redAccent,
+                      child: Text(
+                        "Send Request",
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold),
+                      ),
+                      onPressed: () async {
+
+
+                        if(_partyName.replaceAll(" ", "")==""){
+                          warning("Enter Party Name");
+                        }
+                        if(_Name.replaceAll(" ", "")==""){
+                          warning("Enter Your Name");
+                        }
+
+                        if(_partyName.replaceAll(" ", "")!=""&&_Name.replaceAll(" ", "")!=""){
+
+                          request();
+
+                        }
+
+                      }),
+                ),
+              ],
+            ),
           ),
         ),
       ),

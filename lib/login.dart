@@ -48,249 +48,258 @@ class _LoginPageState extends State<LoginPage> {
       child: Scaffold(
         resizeToAvoidBottomInset: false,
         body: SafeArea(
+          bottom: false,
           child: GestureDetector(
             onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-            child: Container(
-              height: MediaQuery.of(context).size.height,
-              child: Stack(
-                children: [
-                  Positioned(
-                    bottom: 0,
-                    child: ClipPath(
-                      clipper: ProsteThirdOrderBezierCurve(
-                        position: ClipPosition.top,
-                        list: [
-                          ThirdOrderBezierCurveSection(
-                            p1: Offset(0, 120),
-                            p2: Offset(150, 400),
-                            p3: Offset(200, 100),
-                            p4: Offset(0, 400),
+            child: Stack(
+              children: [
+
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 30, vertical: 20),
+                      child: Row(
+                        children: [
+                          Text(
+                            "Host Party",
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 30,
+                                fontWeight: FontWeight.bold),
                           ),
+                          Spacer(),
+                          IconButton(
+                              onPressed: () {
+                                // Navigator.pop(context);
+                              },
+                              icon: Icon(
+                                Icons.close,
+                                size: 30,
+                                color: Colors.transparent,
+                              ))
                         ],
                       ),
-                      child: Container(
-                        height: 400,
-                        width: MediaQuery.of(context).size.width,
-                        //color: Colors.redAccent,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(0),
-                          gradient: LinearGradient(
-                            begin: Alignment.centerRight,
-                            end: Alignment.centerLeft,
-                            colors: [
-                              //CupertinoColors.systemPink,
-                              Colors.pink,
-                              Colors.red,
-                            ],
-
-                          ),
-                          border: Border.all(
-                              color: Colors.transparent, width: 3),
-                        ),
-                        //color: Colors.grey.withOpacity(0.1),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(30.0),
+                      child: TextField(
+                        cursorColor: Colors.redAccent,
+                        decoration: InputDecoration(
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(25)),
+                              borderSide: BorderSide(
+                                  color: Colors.redAccent,
+                                  width: 2.0,
+                                  style: BorderStyle.solid),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(25)),
+                              borderSide: BorderSide(
+                                  color: Colors.redAccent, width: 2.0),
+                            ),
+                            hintText: 'Party Name',
+                            counter: Text("${_partyName.length}/20")),
+                        toolbarOptions: ToolbarOptions(),
+                        onChanged: (String name) {
+                          setState(() {
+                            _partyName = name;
+                          });
+                        },
+                        onSubmitted: (String name) {
+                          _partyName = name;
+                        },
+                        maxLength: 20,
                       ),
                     ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 0),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 30, vertical: 20),
-                          child: Row(
-                            children: [
-                              Text(
-                                "Host Party",
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 30,
-                                    fontWeight: FontWeight.bold),
-                              ),
-                              Spacer(),
-                              IconButton(
-                                  onPressed: () {
-                                    // Navigator.pop(context);
-                                  },
-                                  icon: Icon(
-                                    Icons.close,
-                                    size: 30,
-                                    color: Colors.transparent,
-                                  ))
-                            ],
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 30),
+                      child: TextField(
+                        decoration: InputDecoration(
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius:
+                                BorderRadius.all(Radius.circular(25)),
+                            borderSide: BorderSide(
+                                color: Colors.redAccent,
+                                width: 2.0,
+                                style: BorderStyle.solid),
                           ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.all(30.0),
-                          child: TextField(
-                            cursorColor: Colors.redAccent,
-                            decoration: InputDecoration(
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius:
-                                      BorderRadius.all(Radius.circular(25)),
-                                  borderSide: BorderSide(
-                                      color: Colors.redAccent,
-                                      width: 2.0,
-                                      style: BorderStyle.solid),
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius:
-                                      BorderRadius.all(Radius.circular(25)),
-                                  borderSide: BorderSide(
-                                      color: Colors.redAccent, width: 2.0),
-                                ),
-                                hintText: 'Party Name',
-                                counter: Text("${_partyName.length}/20")),
-                            toolbarOptions: ToolbarOptions(),
-                            onChanged: (String name) {
-                              setState(() {
-                                _partyName = name;
-                              });
-                            },
-                            onSubmitted: (String name) {
-                              _partyName = name;
-                            },
-                            maxLength: 20,
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius:
+                                BorderRadius.all(Radius.circular(25)),
+                            borderSide: BorderSide(
+                                color: Colors.redAccent, width: 2.0),
                           ),
+                          hintText: 'Party Code',
                         ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 30),
-                          child: TextField(
-                            decoration: InputDecoration(
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius:
-                                    BorderRadius.all(Radius.circular(25)),
-                                borderSide: BorderSide(
-                                    color: Colors.redAccent,
-                                    width: 2.0,
-                                    style: BorderStyle.solid),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius:
-                                    BorderRadius.all(Radius.circular(25)),
-                                borderSide: BorderSide(
-                                    color: Colors.redAccent, width: 2.0),
-                              ),
-                              hintText: 'Party Code',
-                            ),
-                            toolbarOptions: ToolbarOptions(),
-                            onChanged: (String code) {
-                              _partyCode = code;
-                            },
-                            onSubmitted: (String code) {
-                              _partyCode = code;
-                            },
-                            cursorColor: Colors.redAccent,
-                            style: TextStyle(decorationColor: Colors.yellow),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(top: 50),
-                          child: CupertinoButton(
-                              color: Colors.redAccent,
-                              child: Text(
-                                "Host Party",
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold),
-                              ),
-                              onPressed: () async {
-
-
-                                var connectivityResult = await (Connectivity().checkConnectivity());
-                                if (connectivityResult == ConnectivityResult.none) {
-
-                                  showTopSnackBar(
-                                    context,
-                                    CustomSnackBar.error(
-                                      message: "No Internet Connection",
-                                    ),
-                                  );
-
-
-                                }else{
-
-                                if (_partyCode != "" && _partyName != "") {
-                                  FirebaseFirestore.instance
-                                      .collection('party')
-                                      .doc(_partyName)
-                                      .get()
-                                      .then((DocumentSnapshot documentSnapshot) {
-                                    if (documentSnapshot.exists) {
-                                      if (documentSnapshot.get("password") ==
-                                          _partyCode) {
-                                        widget.analytics.logEvent(
-                                          name: "party_logg_in",
-                                          parameters: <String, dynamic>{
-                                            'success': true,
-                                          },
-                                        );
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                              builder: (context) => MyHomePage(
-                                                    partyCode: _partyCode,
-                                                    partyName: _partyName,
-                                                    analytics: widget.analytics,
-                                                  )),
-                                        );
-                                      } else {
-                                        warning("Wrong Party Code");
-                                      }
-
-                                      widget.analytics.logEvent(
-                                        name: "party_logg_in",
-                                        parameters: <String, dynamic>{
-                                          'success': false,
-                                        },
-                                      );
-                                    } else {
-                                      widget.analytics.logEvent(
-                                        name: "party_logg_in",
-                                        parameters: <String, dynamic>{
-                                          'success': false,
-                                        },
-                                      );
-
-                                      warning("Wrong Party Name");
-                                    }
-                                  });
-                                }else{
-
-                                  showTopSnackBar(
-                                    context,
-                                    CustomSnackBar.error(
-                                      message: _partyName.replaceAll(" ", "")==""?"Enter A Party Name":"Enter A Party Code",
-                                    ),
-                                  );
-
-                                }}
-                              }),
-                        ),
-                        Spacer(),
-                        TextButton(
-                            onPressed: () {
-                              Navigator.push(
-                                  context,
-                                  PageTransition(
-                                      type: PageTransitionType.leftToRight,
-                                      duration: Duration(milliseconds: 500),
-                                      child: CreateParty(
-                                        analytics: widget.analytics,
-                                      )));
-                            },
-                            child: Text(
-                              "Create Party",
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold),
-                            ))
-                      ],
+                        toolbarOptions: ToolbarOptions(),
+                        onChanged: (String code) {
+                          _partyCode = code;
+                        },
+                        onSubmitted: (String code) {
+                          _partyCode = code;
+                        },
+                        cursorColor: Colors.redAccent,
+                        style: TextStyle(decorationColor: Colors.yellow),
+                      ),
                     ),
-                  ),
-                ],
-              ),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 50),
+                      child: CupertinoButton(
+                          color: Colors.redAccent,
+                          child: Text(
+                            "Host Party",
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold),
+                          ),
+                          onPressed: () async {
+
+
+                            var connectivityResult = await (Connectivity().checkConnectivity());
+                            if (connectivityResult == ConnectivityResult.none) {
+
+                              showTopSnackBar(
+                                context,
+                                CustomSnackBar.error(
+                                  message: "No Internet Connection",
+                                ),
+                              );
+
+
+                            }else{
+
+                            if (_partyCode != "" && _partyName != "") {
+                              FirebaseFirestore.instance
+                                  .collection('party')
+                                  .doc(_partyName)
+                                  .get()
+                                  .then((DocumentSnapshot documentSnapshot) {
+                                if (documentSnapshot.exists) {
+                                  if (documentSnapshot.get("password") ==
+                                      _partyCode) {
+                                    widget.analytics.logEvent(
+                                      name: "party_logg_in",
+                                      parameters: <String, dynamic>{
+                                        'success': true,
+                                      },
+                                    );
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) => MyHomePage(
+                                                partyCode: _partyCode,
+                                                partyName: _partyName,
+                                                analytics: widget.analytics,
+                                              )),
+                                    );
+                                  } else {
+                                    warning("Wrong Party Code");
+                                  }
+
+                                  widget.analytics.logEvent(
+                                    name: "party_logg_in",
+                                    parameters: <String, dynamic>{
+                                      'success': false,
+                                    },
+                                  );
+                                } else {
+                                  widget.analytics.logEvent(
+                                    name: "party_logg_in",
+                                    parameters: <String, dynamic>{
+                                      'success': false,
+                                    },
+                                  );
+
+                                  warning("Wrong Party Name");
+                                }
+                              });
+                            }else{
+
+                              showTopSnackBar(
+                                context,
+                                CustomSnackBar.error(
+                                  message: _partyName.replaceAll(" ", "")==""?"Enter A Party Name":"Enter A Party Code",
+                                ),
+                              );
+
+                            }}
+                          }),
+                    ),
+
+
+
+
+                    Spacer(),
+                    Container(
+                      //color: Colors.blue,
+                      child: ClipPath(
+                        clipper: ProsteThirdOrderBezierCurve(
+                          position: ClipPosition.top,
+                          list: [
+                            ThirdOrderBezierCurveSection(
+                              p1: Offset(0, 0),
+                              p2: Offset(150, 180),
+                              p3: Offset(100, 30),
+                              p4: Offset(0, 190),
+                            ),
+                          ],
+                        ),
+                        child: Container(
+                          height: 200,
+                          width: MediaQuery.of(context).size.width,
+                          //color: Colors.redAccent,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(0),
+                            gradient: LinearGradient(
+                              begin: Alignment.centerRight,
+                              end: Alignment.centerLeft,
+                              colors: [
+                                //CupertinoColors.systemPink,
+                                Colors.pink,
+                                Colors.red,
+                              ],
+
+                            ),
+
+
+                          ),
+
+                          child: TextButton(
+                              onPressed: () {
+
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => CreateParty(
+                                    analytics: widget.analytics,
+                                  )),
+                                );
+
+                              },
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.all(20.0),
+                                    child: Text(
+                                      "Create Party",
+                                      style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                ],
+                              )),
+                          //color: Colors.grey.withOpacity(0.1),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
         ),

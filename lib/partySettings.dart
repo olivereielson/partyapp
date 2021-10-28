@@ -1,6 +1,7 @@
 import 'package:bouncer/createparty.dart';
 import 'package:bouncer/numberselect.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -9,6 +10,8 @@ import 'package:flutter/rendering.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:persistent_bottom_nav_bar/persistent-tab-view.dart';
 import 'package:proste_bezier_curve/proste_bezier_curve.dart';
+import 'package:top_snackbar_flutter/custom_snack_bar.dart';
+import 'package:top_snackbar_flutter/top_snack_bar.dart';
 
 import 'login.dart';
 
@@ -28,10 +31,21 @@ class party_settings extends StatefulWidget {
 class _party_settingsState extends State<party_settings> {
   bool _reusedCodes = false;
 
+
+  warning(String warning) {
+    showTopSnackBar(
+      context,
+      CustomSnackBar.error(
+        message: warning,
+      ),
+    );
+
+  }
+
   Future<bool> delete_confermation() async {
     bool test = await showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (context) => CupertinoAlertDialog(
         title: Text("Delete Party?"),
         content: Text(
             "Are you sure you want to end the party? This action can not be undone."),
@@ -50,11 +64,15 @@ class _party_settingsState extends State<party_settings> {
                 style: TextStyle(color: Colors.redAccent),
               ),
               onPressed: () async {
+
                 Navigator.pop(context, true);
+
+
+
 
                 //Navigator.of(context).popUntil(ModalRoute.withName('/my-target-screen'));
 
-                // FirebaseFirestore.instance.collection('party').doc(widget.partyName).delete().then((value) {});
+                //
               }),
         ],
       ),
@@ -103,7 +121,6 @@ class _party_settingsState extends State<party_settings> {
     );
   }
 
-  // /Users/olivereielson/Documents/GitHub/partyapp/ios/Pods/FirebaseCrashlytics/upload-symbols -gsp /Users/olivereielson/Documents/GitHub/partyapp/ios/Runner/GoogleService-Info.plist -p ios /path/to/dSYMs
 
   Widget reuseWidhet() {
     return Padding(
@@ -306,11 +323,7 @@ class _party_settingsState extends State<party_settings> {
 
                       await _showPicker(context);
 
-                      FirebaseFirestore.instance
-                          .collection('party')
-                          .doc(widget.partyName)
-                          .set({"numscan": widget.reuse},
-                              SetOptions(merge: true));
+                      FirebaseFirestore.instance.collection('party').doc(widget.partyName).set({"numscan": widget.reuse}, SetOptions(merge: true));
 
                       widget.analytics.logEvent(
                           name: "reuse_num_changed",
@@ -359,11 +372,19 @@ class _party_settingsState extends State<party_settings> {
                   padding: const EdgeInsets.fromLTRB(20, 30, 20, 30),
                   child: GestureDetector(
                     onTap: () async {
-                      erase_confermation();
+                      var connectivityResult = await (Connectivity().checkConnectivity());
 
-                      widget.analytics.logEvent(
-                        name: "party_reset",
-                      );
+                     if(connectivityResult != ConnectivityResult.none){
+                       erase_confermation();
+                       widget.analytics.logEvent(
+                         name: "party_reset",
+                       );
+                     }else{
+
+                       warning("No Internet Connection");
+
+                     }
+
                     },
                     child: Row(
                       children: [
@@ -404,28 +425,28 @@ class _party_settingsState extends State<party_settings> {
                       const EdgeInsets.symmetric(vertical: 0, horizontal: 20),
                   child: GestureDetector(
                     onTap: () async {
-                      bool test = await delete_confermation();
 
-                      if (test) {
-                        FirebaseFirestore.instance
-                            .collection('party')
-                            .doc(widget.partyName)
-                            .delete()
-                            .then((value) {
-                          pushNewScreen(
-                            context,
-                            screen: LoginPage(analytics: widget.analytics),
-                            withNavBar: true,
-                            // OPTIONAL VALUE. True by default.
-                            pageTransitionAnimation:
-                                PageTransitionAnimation.cupertino,
-                          );
-                        });
+                      var connectivityResult = await (Connectivity().checkConnectivity());
+
+                      if(connectivityResult != ConnectivityResult.none){
+
+                        bool test = await delete_confermation();
+
+                        if (test) {
+                          Navigator.pop(context,-1);
+                        }
+
+                        widget.analytics.logEvent(
+                            name: "party_delete_clicked",
+                            parameters: {"deleted": test});
+
+                      }else{
+
+                        warning("No Internet Connection");
+
                       }
 
-                      widget.analytics.logEvent(
-                          name: "party_delete_clicked",
-                          parameters: {"deleted": test});
+
                     },
                     child: Row(
                       children: [
