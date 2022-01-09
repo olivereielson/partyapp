@@ -246,7 +246,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     Text(
-                      "Invite Card",
+                      "Invite Requests",
                       style: TextStyle(
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
@@ -255,7 +255,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     Padding(
                       padding: const EdgeInsets.only(top: 10.0),
                       child: Text(
-                        "Users can scan this card to have an invite added to their saved passes.  Never send a user a screenshot of this code",
+                        "Accept or Deny a user requests for an invite.",
                         style: TextStyle(color: Colors.white),
                       ),
                     )
@@ -263,8 +263,8 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
               ))
         ]));
-    targets.add(
-        TargetFocus(identify: "Target 2", keyTarget: keyButton2, contents: [
+
+    targets.add(TargetFocus(identify: "Target 2", keyTarget: keyButton2, contents: [
       TargetContent(
           align: ContentAlign.bottom,
           child: Container(
@@ -377,7 +377,7 @@ class _MyHomePageState extends State<MyHomePage> {
     TutorialCoachMark tutorial = TutorialCoachMark(context,
         targets: targets,
         // List<TargetFocus>
-        colorShadow: Colors.red,
+        colorShadow: Colors.redAccent,
         // DEFAULT Colors.black
         alignSkip: Alignment.topLeft,
         textSkip: "SKIP",
@@ -393,8 +393,7 @@ class _MyHomePageState extends State<MyHomePage> {
       widget.analytics.logEvent(
         name: 'info_skipped',
       );
-    })
-      ..show();
+    })..show();
   }
 
   void acceptInvite(String name) {
@@ -916,6 +915,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       ),
                       Spacer(),
                       IconButton(
+                        key: keyButton2,
                         icon: Icon(CupertinoIcons.share),
                         onPressed: () {
                           shareCode(FirebaseFirestore.instance

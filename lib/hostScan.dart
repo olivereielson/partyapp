@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -59,22 +60,6 @@ class _HostScanState extends State<HostScan> {
         },
       ),
     );
-  }
-
-  String generateID() {
-    var rng = new Random();
-
-    String date = DateTime.now().microsecondsSinceEpoch.toString();
-
-    String inviteID = widget.partyName.toUpperCase() +
-        "-" +
-        date.substring(date.length - 5) +
-        "-" +
-        rng.nextInt(100000).toString();
-
-    print(inviteID);
-
-    return inviteID;
   }
 
   Future<void> scandata(Barcode result, DocumentReference party) async {
@@ -145,7 +130,12 @@ class _HostScanState extends State<HostScan> {
   }
 
   void _onQRViewCreated(QRViewController controller, DocumentReference party) {
-    this.controller = controller;
+
+    setState(() {
+      this.controller = controller;
+    });
+
+
     controller.scannedDataStream.listen((scanData) {
       setState(() {
         result = scanData;
@@ -155,11 +145,30 @@ class _HostScanState extends State<HostScan> {
       }
     });
   }
+  void _onPermissionSet(BuildContext context, QRViewController ctrl, bool p) {
+    //log('${DateTime.now().toIso8601String()}_onPermissionSet $p');
+
+    print(p);
+    if (!p) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('no Permission')),
+      );
+    }
+  }
+
+
+
 
   @override
   Widget build(BuildContext context) {
     DocumentReference party =
         FirebaseFirestore.instance.collection('party').doc(widget.partyName);
+
+    var scanArea = (MediaQuery.of(context).size.width < 400 ||
+        MediaQuery.of(context).size.height < 400)
+        ? 150.0
+        : 300.0;
+
     return WillPopScope(
         onWillPop: () async => false,
         child: Scaffold(
@@ -170,7 +179,9 @@ class _HostScanState extends State<HostScan> {
                 children: [
                   QRView(
                       key: qrKey,
+                      onPermissionSet: (ctrl, p) => _onPermissionSet(context, ctrl, p),
                       onQRViewCreated: (cont) {
+                        print("Qr created");
                         return _onQRViewCreated(cont, party);
                       }),
                 ],
@@ -237,8 +248,7 @@ class _HostScanState extends State<HostScan> {
                                     );
                                   } else {
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                        warning(
-                                            "Flash can only be used with front camera"));
+                                        warning("Flash can only be used with front camera"));
                                     widget.analytics.logEvent(
                                       name: 'flash_toggled',
                                       parameters: <String, dynamic>{
@@ -254,6 +264,18 @@ class _HostScanState extends State<HostScan> {
                                 icon: Icon(flash
                                     ? Icons.flashlight_on
                                     : Icons.flashlight_off)),
+                            IconButton(onPressed: () async {
+
+                              await controller!.stopCamera();
+
+                              await controller!.resumeCamera();
+
+
+                              //print( controller!.getSystemFeatures().toString());
+
+                             // print(controller!.scannedDataStream.length);
+
+                            }, icon: Icon(Icons.warning))
                           ],
                         ),
                       ),
@@ -271,10 +293,17 @@ class _HostScanState extends State<HostScan> {
     _testSetCurrentScreen();
     super.initState();
     initConnectivity();
-
-    _connectivitySubscription =
-        _connectivity.onConnectivityChanged.listen(_updateConnectionStatus);
+    _connectivitySubscription = _connectivity.onConnectivityChanged.listen(_updateConnectionStatus);
   }
+  @override
+  void reassemble() {
+    super.reassemble();
+    if (Platform.isAndroid) {
+      controller!.pauseCamera();
+    }
+    controller!.resumeCamera();
+  }
+
 
   Future<void> _testSetCurrentScreen() async {
     await widget.analytics.setCurrentScreen(
